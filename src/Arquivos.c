@@ -9,7 +9,7 @@ int save_game(const Player *p, const Map *m, const char *filename){
 
     // salvando inventario explicitamente no caso de ponteiros internos
     // Para segurança, salvamos o inventario manualmente
-    fwrite(p->inventario.size, sizeof(size_t), 1, f);
+    fwrite(&p->inventario.size, sizeof(size_t), 1, f);
     for(size_t i = 0; i < p->inventario.size; i++){
         fwrite(&p->inventario.itens[i], sizeof(Item), 1, f);
     }

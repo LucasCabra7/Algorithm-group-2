@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Player player_creat(const *nome, Classe classe){
+Player player_creat(const char *nome, Classe classe){
 
     Player p;
     strncpy(p.nome, nome, NAME_MAX_LEN - 1);
