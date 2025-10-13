@@ -115,12 +115,22 @@ int main()
             {
                 map_print(&mapa, &jogador);
                 printf("\nAcoes: w/a/s/d mover | i inventario | p status | q salvar | e sair para menu\n> ");
+
+                // Gryghor: Esse código não estava funcionando corretamente no
+                // tratamento de entrada do teclado, então substituí por um scanf simples e funcionou
+
+                //  char cmd = 0;
+                //   while (getchar() != '\n')
+                //    ; // limpa
+                //    cmd = getchar();
+                // while (getchar() != '\n')
+                //    ;
+
                 char cmd = 0;
-                while (getchar() != '\n')
-                    ; // limpa
-                cmd = getchar();
-                while (getchar() != '\n')
-                    ;
+                scanf(" %c", &cmd);
+
+                int prev_x = jogador.pos_x;
+                int prev_y = jogador.pos_y;
 
                 int moved = 0;
                 if (cmd == 'w')
@@ -169,35 +179,56 @@ int main()
                 {
                     if (map_check_encounter(&mapa, &jogador))
                     {
-                        int res = batalha_turno(&jogador, &mapa);
-                        if (res == 1)
+                        // Encontra qual inimigo está na posição do jogador
+                        Inimigo *inimigo_encontrado = NULL;
+                        for (int i = 0; i < mapa.num_inimigos; i++)
                         {
-                            // Jogador Morreu:
-                            printf("Voltando ao menu principal...\n");
-                            in_game = 0;
-                            pause_console();
-                            break;
-                        }
-                        if (res == 0)
-                        {
-                            // Venceu!
-                            // Chance de dropar um item:
-                            int r = rand() % 100;
-                            if (r < 40)
+                            if (mapa.inimigos[i].pos_x == jogador.pos_x && mapa.inimigos[i].pos_y == jogador.pos_y)
                             {
-                                Item it;
-                                it.tipo = ITEM_MUNI;
-                                strncpy(it.nome, "Municao", 31);
-                                inventory_add(&jogador.inventario, it);
-                                printf("O zumbi deixou municao!\n");
+                                // Verifica se o inimigo já não foi derrotado
+                                if (mapa.inimigos[i].ativo)
+                                {
+                                    inimigo_encontrado = &mapa.inimigos[i];
+                                    break;
+                                }
                             }
-                            pause_console();
                         }
-                        if (res == 2)
+
+                        if (inimigo_encontrado)
                         {
-                            // Fugiu
-                            printf("Você fugiu do encontro.\n");
-                            pause_console();
+                            // Passa o inimigo encontrado para a função de batalha
+                            int res = batalha_turno(&jogador, inimigo_encontrado);
+
+                            if (res == 1) // Jogador Morreu
+                            {
+                                printf("Voltando ao menu principal...\n");
+                                in_game = 0;
+                                pause_console();
+                                break;
+                            }
+                            if (res == 0) // Venceu!
+                            {
+                                // Remove o 'Z' do mapa após a vitória
+                                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+
+                                // Chance de dropar um item:
+                                if ((rand() % 100) < 40)
+                                {
+                                    Item it;
+                                    it.tipo = ITEM_MUNI;
+                                    strncpy(it.nome, "Municao", 31);
+                                    inventory_add(&jogador.inventario, it);
+                                    printf("O inimigo deixou municao!\n");
+                                }
+                                pause_console();
+                            }
+                            if (res == 2) // Fugiu
+                            {
+                                printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
+                                jogador.pos_x = prev_x; // Restaura a posição X anterior
+                                jogador.pos_y = prev_y; // Restaura a posição Y anterior
+                                pause_console();
+                            }
                         }
                     }
                     else
@@ -228,22 +259,22 @@ int main()
         else if (op == 2)
         {
             // carregar jogo
-            map_init(&mapa); // inicializa por segurança
-            if (load_game(&jogador, &mapa, "savegame,dat"))
+            if (load_game(&jogador, &mapa, "savegame.dat"))
             {
                 printf("Jogo carregado com sucesso!\n");
+                pause_console();
                 // Entrar no loop do jogo:
                 int in_game = 1;
                 while (in_game)
                 {
                     map_print(&mapa, &jogador);
                     printf("\nAcoes: w/a/s/d mover | i inventario | p status | q salvar | e sair para menu\n> ");
+
+                    int prev_x = jogador.pos_x;
+                    int prev_y = jogador.pos_y;
+
                     char cmd = 0;
-                    while (getchar() != '\n')
-                        ; // limpa
-                    cmd = getchar();
-                    while (getchar() != '\n')
-                        ;
+                    scanf(" %c", &cmd);
 
                     int moved = 0;
                     if (cmd == 'w')
@@ -292,38 +323,57 @@ int main()
                     {
                         if (map_check_encounter(&mapa, &jogador))
                         {
-                            int res = batalha_turno(&jogador, &mapa);
-
-                            if (res == 1)
+                            Inimigo *inimigo_encontrado = NULL;
+                            for (int i = 0; i < mapa.num_inimigos; i++)
                             {
-                                // Jogador Morreu:
-                                printf("Voltando ao menu principal...\n");
-                                in_game = 0;
-                                pause_console();
-                                break;
-                            }
-                            if (res == 0)
-                            {
-                                // Jogador Venceu:
-                                int r = rand() % 100;
-                                if (r < 40)
+                                if (mapa.inimigos[i].pos_x == jogador.pos_x && mapa.inimigos[i].pos_y == jogador.pos_y)
                                 {
-                                    Item it;
-                                    it.tipo = ITEM_MUNI;
-                                    strncpy(it.nome, "Municao", 31);
-                                    it.nome[31] = '\0';
-                                    it.poder = 1;
-                                    it.quantidade = 3;
-                                    inventory_add(&jogador.inventario, it);
-                                    printf("O zumbi deixou municao!\n");
+                                    if (mapa.inimigos[i].ativo)
+                                    {
+                                        inimigo_encontrado = &mapa.inimigos[i];
+                                        break;
+                                    }
                                 }
-                                pause_console();
                             }
-                            if (res == 2)
+
+                            if (inimigo_encontrado)
                             {
-                                // Jogador Fugiu:
-                                printf("Você fugiu do encontro.\n");
-                                pause_console();
+                                int res = batalha_turno(&jogador, inimigo_encontrado);
+
+                                if (res == 1)
+                                {
+                                    // Jogador Morreu:
+                                    printf("Voltando ao menu principal...\n");
+                                    in_game = 0;
+                                    pause_console();
+                                    break;
+                                }
+                                if (res == 0)
+                                {
+                                    // Jogador Venceu:
+                                    mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                                    int r = rand() % 100;
+                                    if (r < 40)
+                                    {
+                                        Item it;
+                                        it.tipo = ITEM_MUNI;
+                                        strncpy(it.nome, "Municao", 31);
+                                        it.nome[31] = '\0';
+                                        it.poder = 1;
+                                        it.quantidade = 3;
+                                        inventory_add(&jogador.inventario, it);
+                                        printf("O inimigo deixou municao!\n");
+                                    }
+                                    pause_console();
+                                }
+                                if (res == 2)
+                                {
+                                    // Jogador Fugiu:
+                                    printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
+                                    jogador.pos_x = prev_x;
+                                    jogador.pos_y = prev_y;
+                                    pause_console();
+                                }
                             }
                         }
                         else

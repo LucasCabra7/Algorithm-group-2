@@ -3,14 +3,17 @@
 
 #include <stddef.h>
 #include "Personagem.h"
+#include "Inimigo.h"
 
 #define MAP_W 10
 #define MAP_H 10
 
 typedef enum { TILE_EMPTY = 0, TILE_WALL = 1, TILE_ZOMBIE = 2, TILE_ITEM = 3} Tile;
 
-typedef struct{
-    Tile grid[MAP_H][MAP_W];
+typedef struct {
+    int grid[MAP_H][MAP_W];
+    Inimigo inimigos[MAX_INIMIGOS];
+    int num_inimigos;              
 } Map;
 
 void map_init(Map *m);
