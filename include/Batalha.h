@@ -3,6 +3,7 @@
 
 #include "Personagem.h"
 #include "Mapa.h"
+#include "Inimigo.h"
 
 typedef struct{
     int hp;
@@ -10,6 +11,6 @@ typedef struct{
     int defesa;
 } Enemy;
 
-int batalha_turno(Player *p, Map *m);
+int batalha_turno(Player *jogador, Inimigo *inimigo);
 
 #endif
