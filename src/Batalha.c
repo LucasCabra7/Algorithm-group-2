@@ -31,6 +31,7 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
             if (hp_inimigo_atual <= 0) {
                 printf("\n%s derrotado!\n", inimigo->nome);
                 jogador->xp += inimigo->xp;
+                player_check_level_up(jogador);
                 printf("Voce ganhou %d XP!\n", inimigo->xp);
                 inimigo->ativo = 0;
                 return 0; // Código de Vitória
