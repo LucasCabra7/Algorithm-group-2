@@ -20,7 +20,7 @@ Player player_creat(const char *nome, Classe classe){
     case SOLDADO:
         p.hp_max = 100;
         p.hp = 100;
-        p.ataque = 18;
+        p.ataque = 22; // Aumento de 4 no ataque base como bônus da classe
         p.defesa = 8;
         break;
     case ENGENHEIRO:
