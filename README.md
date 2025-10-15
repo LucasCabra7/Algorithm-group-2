@@ -29,6 +29,7 @@ O tema escolhido é pós-apocalíptico, em um mundo devastado por um vírus que 
 - 🖥️ Linguagem: **C**
 - 💾 Paradigma: **Programação Orientada a Objetos e Algoritmos**
 - 📋 Documentação: **Google Docs, GitHub**
+- 📞 Comunicação: **Discord, Whatsapp e Github projects**
 - 🎨 Apresentação visual: **Canva, Miro**
 - 🌐 Interface Web: **Em andamento**
 
@@ -65,6 +66,7 @@ O sistema é composto pelas seguintes classes:
 5. Mapa representado em matriz textual (# = obstáculo, Z = zumbi, P = player).
 6. Salvamento e carregamento de progresso via arquivos texto/binários.
 
+> *Este é o coração de nosso projeto algumas features estão sujeitas à alterações, porém estamos em trabalho contínuo para melhorar a sua experiencia , sinta-se livre para dar sugestões...*
 ---
 
 ## 🌍 Interface Web (opcional)
