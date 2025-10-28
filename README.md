@@ -108,7 +108,7 @@ gcc src/*.c -I./include -o zombie
 
 ## 📎 Links Úteis
 
-- 📒 Documentos Google (Documentação): [[Acessar](https://miro.com/app/board/uXjVIjGJgRI=/?share_link_id=360641450079)](https://docs.google.com/document/d/1AzQkcqnJ7S7V7j1aGL4Yy1mdcivLg5VonMRJQ03T9Tw/edit?usp=sharing)
+- 📒 Documentos Google (Documentação): [[Acessar](https://docs.google.com/document/d/1AzQkcqnJ7S7V7j1aGL4Yy1mdcivLg5VonMRJQ03T9Tw/edit?usp=sharing)]
 
 ---
 
