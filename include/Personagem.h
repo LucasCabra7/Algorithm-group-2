@@ -2,7 +2,7 @@
 #define PERSONAGEM_H
 
 #include <stdint.h>
-#include "inventario.h"
+#include "Inventario.h"
 
 #define NAME_MAX_LEN 32
 
