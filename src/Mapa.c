@@ -53,7 +53,8 @@ void map_init(Map *mapa) {
 
     // Inicializa e cria os inimigos com atributos variados
     mapa->num_inimigos = 0;
-    int inimigos_a_criar = 12; // Mais inimigos para mapa maior
+    // Número de inimigos proporcional ao tamanho do mapa (cerca de 2.4% dos tiles)
+    int inimigos_a_criar = (MAP_W * MAP_H) / 42; // 500 tiles / 42 ≈ 12 inimigos
 
     for (int i = 0; i < inimigos_a_criar; i++) {
         if (mapa->num_inimigos >= MAX_INIMIGOS) {

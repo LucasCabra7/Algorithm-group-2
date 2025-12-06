@@ -96,6 +96,9 @@ void criar_personagem_flow(Player *p)
 
 void adicionar_item_exemplo(Player *p)
 {
+    // Itens iniciais balanceados para o novo mapa maior
+    // Reduzido de 2 medkits para 1 para aumentar desafio
+    // Munição reduzida de 12 para 5 para encorajar exploração
     Item med;
     med.tipo = ITEM_MEDKIT;
     strncpy(med.nome, "Medkit", 31);
@@ -112,6 +115,64 @@ void adicionar_item_exemplo(Player *p)
     muni.quantidade = 5;
     inventory_add(&p->inventario, muni);
 };
+
+// Função auxiliar para coletar itens do mapa e reduzir duplicação de código
+void coletar_item_do_mapa(Map *mapa, Player *jogador, Tile current_tile) {
+    Item it;
+    int found_item = 0;
+    
+    if (current_tile == TILE_MEDKIT)
+    {
+        it.tipo = ITEM_MEDKIT;
+        strncpy(it.nome, "Medkit", 31);
+        it.nome[31] = '\0';
+        it.poder = 25;
+        it.quantidade = 1;
+        inventory_add(&jogador->inventario, it);
+        printf("Voce encontrou um Medkit! (+25 HP quando usado)\n");
+        found_item = 1;
+    }
+    else if (current_tile == TILE_WEAPON)
+    {
+        it.tipo = ITEM_PISTOLA;
+        strncpy(it.nome, "Pistola", 31);
+        it.nome[31] = '\0';
+        it.poder = 8;
+        it.quantidade = 1;
+        inventory_add(&jogador->inventario, it);
+        printf("Voce encontrou uma Pistola! (Aumenta seu ataque)\n");
+        jogador->ataque += 5; // Bonus permanente
+        found_item = 1;
+    }
+    else if (current_tile == TILE_AMMO)
+    {
+        it.tipo = ITEM_MUNI;
+        strncpy(it.nome, "Municao", 31);
+        it.nome[31] = '\0';
+        it.poder = 1;
+        it.quantidade = 5;
+        inventory_add(&jogador->inventario, it);
+        printf("Voce encontrou Municao! (x5)\n");
+        found_item = 1;
+    }
+    else if (current_tile == TILE_ITEM)
+    {
+        // Item genérico antigo (mantido para compatibilidade)
+        it.tipo = ITEM_MEDKIT;
+        strncpy(it.nome, "Medkit", 31);
+        it.nome[31] = '\0';
+        it.poder = 25; // Consistente com TILE_MEDKIT
+        it.quantidade = 1;
+        inventory_add(&jogador->inventario, it);
+        printf("Voce encontrou um item: Medkit!\n");
+        found_item = 1;
+    }
+    
+    if (found_item) {
+        mapa->grid[jogador->pos_y][jogador->pos_x] = TILE_GRASS; // Deixa grama no lugar
+        pause_console();
+    }
+}
 
 int main()
 {
@@ -274,62 +335,9 @@ int main()
                     }
                     else
                     {
-                        // Checar diferentes tipos de itens
+                        // Checar e coletar diferentes tipos de itens
                         Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
-                        Item it;
-                        int found_item = 0;
-                        
-                        if (current_tile == TILE_MEDKIT)
-                        {
-                            it.tipo = ITEM_MEDKIT;
-                            strncpy(it.nome, "Medkit", 31);
-                            it.nome[31] = '\0';
-                            it.poder = 25;
-                            it.quantidade = 1;
-                            inventory_add(&jogador.inventario, it);
-                            printf("Voce encontrou um Medkit! (+25 HP quando usado)\n");
-                            found_item = 1;
-                        }
-                        else if (current_tile == TILE_WEAPON)
-                        {
-                            it.tipo = ITEM_PISTOLA;
-                            strncpy(it.nome, "Pistola", 31);
-                            it.nome[31] = '\0';
-                            it.poder = 8;
-                            it.quantidade = 1;
-                            inventory_add(&jogador.inventario, it);
-                            printf("Voce encontrou uma Pistola! (Aumenta seu ataque)\n");
-                            jogador.ataque += 5; // Bonus permanente
-                            found_item = 1;
-                        }
-                        else if (current_tile == TILE_AMMO)
-                        {
-                            it.tipo = ITEM_MUNI;
-                            strncpy(it.nome, "Municao", 31);
-                            it.nome[31] = '\0';
-                            it.poder = 1;
-                            it.quantidade = 5;
-                            inventory_add(&jogador.inventario, it);
-                            printf("Voce encontrou Municao! (x5)\n");
-                            found_item = 1;
-                        }
-                        else if (current_tile == TILE_ITEM)
-                        {
-                            // Item genérico antigo (mantido para compatibilidade)
-                            it.tipo = ITEM_MEDKIT;
-                            strncpy(it.nome, "Medkit", 31);
-                            it.nome[31] = '\0';
-                            it.poder = 20;
-                            it.quantidade = 1;
-                            inventory_add(&jogador.inventario, it);
-                            printf("Voce encontrou um item: Medkit!\n");
-                            found_item = 1;
-                        }
-                        
-                        if (found_item) {
-                            mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS; // Deixa grama no lugar
-                            pause_console();
-                        }
+                        coletar_item_do_mapa(&mapa, &jogador, current_tile);
                     }
                 }
                 else
@@ -480,62 +488,9 @@ int main()
                         }
                         else
                         {
-                            // Checar diferentes tipos de itens
+                            // Checar e coletar diferentes tipos de itens
                             Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
-                            Item it;
-                            int found_item = 0;
-                            
-                            if (current_tile == TILE_MEDKIT)
-                            {
-                                it.tipo = ITEM_MEDKIT;
-                                strncpy(it.nome, "Medkit", 31);
-                                it.nome[31] = '\0';
-                                it.poder = 25;
-                                it.quantidade = 1;
-                                inventory_add(&jogador.inventario, it);
-                                printf("Voce encontrou um Medkit! (+25 HP quando usado)\n");
-                                found_item = 1;
-                            }
-                            else if (current_tile == TILE_WEAPON)
-                            {
-                                it.tipo = ITEM_PISTOLA;
-                                strncpy(it.nome, "Pistola", 31);
-                                it.nome[31] = '\0';
-                                it.poder = 8;
-                                it.quantidade = 1;
-                                inventory_add(&jogador.inventario, it);
-                                printf("Voce encontrou uma Pistola! (Aumenta seu ataque)\n");
-                                jogador.ataque += 5; // Bonus permanente
-                                found_item = 1;
-                            }
-                            else if (current_tile == TILE_AMMO)
-                            {
-                                it.tipo = ITEM_MUNI;
-                                strncpy(it.nome, "Municao", 31);
-                                it.nome[31] = '\0';
-                                it.poder = 1;
-                                it.quantidade = 5;
-                                inventory_add(&jogador.inventario, it);
-                                printf("Voce encontrou Municao! (x5)\n");
-                                found_item = 1;
-                            }
-                            else if (current_tile == TILE_ITEM)
-                            {
-                                // Item genérico antigo (mantido para compatibilidade)
-                                it.tipo = ITEM_MEDKIT;
-                                strncpy(it.nome, "Medkit", 31);
-                                it.nome[31] = '\0';
-                                it.poder = 20;
-                                it.quantidade = 1;
-                                inventory_add(&jogador.inventario, it);
-                                printf("Voce encontrou um item: Medkit!\n");
-                                found_item = 1;
-                            }
-                            
-                            if (found_item) {
-                                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS; // Deixa grama no lugar
-                                pause_console();
-                            }
+                            coletar_item_do_mapa(&mapa, &jogador, current_tile);
                         }
                     }
                     else
