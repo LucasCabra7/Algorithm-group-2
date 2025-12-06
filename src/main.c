@@ -16,12 +16,49 @@ void pause_console()
         ;
 }
 
+void mostrar_tutorial() {
+    printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+    printf("║           BEM-VINDO AO ZOMBIE RAMPAGE!                   ║\n");
+    printf("╚═══════════════════════════════════════════════════════════╝\n\n");
+    printf("OBJETIVO:\n");
+    printf("  Sobreviva em um mundo pos-apocaliptico infestado de zumbis!\n");
+    printf("  Explore o mapa, colete itens e derrote os zumbis.\n\n");
+    
+    printf("CONTROLES:\n");
+    printf("  w/a/s/d - Mover para cima/esquerda/baixo/direita\n");
+    printf("  i       - Ver inventario\n");
+    printf("  p       - Ver status do personagem\n");
+    printf("  q       - Salvar jogo\n");
+    printf("  e       - Voltar ao menu principal\n\n");
+    
+    printf("MAPA:\n");
+    printf("  P  = Voce (jogador)\n");
+    printf("  Z  = Zumbi (combate ao pisar)\n");
+    printf("  +  = Medkit (cura HP)\n");
+    printf("  !  = Arma (aumenta ataque)\n");
+    printf("  ^  = Municao\n");
+    printf("  #  = Obstaculo (nao pode atravessar)\n");
+    printf("  T  = Arvore (bloqueia passagem)\n");
+    printf("  ~  = Agua (nao pode atravessar)\n");
+    printf("  B  = Predio (bloqueia passagem)\n");
+    printf("  ,  = Grama (pode atravessar)\n");
+    printf("  .  = Chao livre (pode atravessar)\n\n");
+    
+    printf("DICAS:\n");
+    printf("  - Colete medkits antes de enfrentar zumbis\n");
+    printf("  - Encontre armas para aumentar seu poder de ataque\n");
+    printf("  - Ganhe XP derrotando zumbis para subir de nivel\n");
+    printf("  - Salve frequentemente seu progresso!\n\n");
+    
+    pause_console();
+}
+
 void menu_principal()
 {
     printf("\n┹┄┄┄┄┄┲⟮۝⟯┹┄┄┄┄┄┲\n");
     printf("\n ZOMBIE RAMPAGE \n");
     printf("\n┹┄┄┄┄┄┲⟮۝⟯┹┄┄┄┄┄┲\n");
-    printf("1) Novo Jogo\n2) Carregar Jogo\n3) Sair\n> ");
+    printf("1) Novo Jogo\n2) Carregar Jogo\n3) Tutorial\n4) Sair\n> ");
 };
 
 int escolher_classe()
@@ -64,23 +101,15 @@ void adicionar_item_exemplo(Player *p)
     strncpy(med.nome, "Medkit", 31);
     med.nome[31] = '\0';
     med.poder = 25;
-    med.quantidade = 2;
+    med.quantidade = 1;
     inventory_add(&p->inventario, med);
-
-    Item pist;
-    pist.tipo = ITEM_PISTOLA;
-    strncpy(pist.nome, "Pistola", 31);
-    pist.nome[31] = '\0';
-    pist.poder = 6;
-    pist.quantidade = 1;
-    inventory_add(&p->inventario, pist);
 
     Item muni;
     muni.tipo = ITEM_MUNI;
     strncpy(muni.nome, "Municao", 31);
     muni.nome[31] = '\0';
     muni.poder = 1;
-    muni.quantidade = 12;
+    muni.quantidade = 5;
     inventory_add(&p->inventario, muni);
 };
 
@@ -108,13 +137,20 @@ int main()
             map_init(&mapa);
             map_place_player(&mapa, &jogador);
             adicionar_item_exemplo(&jogador);
+            
+            // Mensagem de boas-vindas
+            printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+            printf("║  Voce acordou em um mundo devastado por um virus...      ║\n");
+            printf("║  Zumbis vagam pelas ruas. Sua missao: SOBREVIVER!        ║\n");
+            printf("╚═══════════════════════════════════════════════════════════╝\n");
+            pause_console();
 
             // Loop do Jogo:
             int in_game = 1;
             while (in_game)
             {
                 map_print(&mapa, &jogador);
-                printf("\nAcoes: w/a/s/d mover | i inventario | p status | q salvar | e sair para menu\n> ");
+                printf("\nAcoes: w/a/s/d mover | i inventario | p status | h ajuda | q salvar | e sair\n> ");
 
                 // Gryghor: Esse código não estava funcionando corretamente no
                 // tratamento de entrada do teclado, então substituí por um scanf simples e funcionou
@@ -161,6 +197,11 @@ int main()
                     else
                         printf("Falha ao salvar\n");
                     pause_console();
+                    continue;
+                }
+                else if (cmd == 'h')
+                {
+                    mostrar_tutorial();
                     continue;
                 }
                 else if (cmd == 'e')
@@ -324,7 +365,7 @@ int main()
                 while (in_game)
                 {
                     map_print(&mapa, &jogador);
-                    printf("\nAcoes: w/a/s/d mover | i inventario | p status | q salvar | e sair para menu\n> ");
+                    printf("\nAcoes: w/a/s/d mover | i inventario | p status | h ajuda | q salvar | e sair\n> ");
 
                     int prev_x = jogador.pos_x;
                     int prev_y = jogador.pos_y;
@@ -361,6 +402,11 @@ int main()
                         else
                             printf("Falha ao salvar\n");
                         pause_console();
+                        continue;
+                    }
+                    else if (cmd == 'h')
+                    {
+                        mostrar_tutorial();
                         continue;
                     }
                     else if (cmd == 'e')
@@ -520,6 +566,10 @@ int main()
             }
         }
         else if (op == 3)
+        {
+            mostrar_tutorial();
+        }
+        else if (op == 4)
         {
             executando = 0;
         }

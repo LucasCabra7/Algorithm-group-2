@@ -60,13 +60,66 @@ O sistema é composto pelas seguintes classes:
 ## 🔄 Fluxo de Uso (Resumo)
 
 1. Interface por texto (menus e opções via terminal).
-2. Criação e seleção de personagem.
-3. Sistema simples de batalhas em turnos (jogador vs zumbi).
-4. Inventário básico (adição, remoção e listagem de itens).
-5. Mapa representado em matriz textual (# = obstáculo, Z = zumbi, P = player).
-6. Salvamento e carregamento de progresso via arquivos texto/binários.
+2. Criação e seleção de personagem (Soldado, Engenheiro ou Médico).
+3. **NOVO:** Sistema de overworld expandido (25x20) com exploração livre.
+4. **NOVO:** Múltiplos tipos de terreno (grama, árvores, água, prédios, obstáculos).
+5. Sistema de batalhas em turnos (jogador vs zumbi) ao encontrar inimigos.
+6. Inventário dinâmico com múltiplos tipos de itens.
+7. **NOVO:** Três tipos de itens colecionáveis:
+   - `+` Medkit (restaura HP)
+   - `!` Armas (aumenta ataque permanentemente)
+   - `^` Munição (recursos de combate)
+8. Sistema de progressão com XP e níveis.
+9. Salvamento e carregamento de progresso via arquivos binários.
+10. **NOVO:** Tutorial in-game acessível a qualquer momento (tecla 'h').
+
+### 🎮 Controles do Jogo
+
+- `w/a/s/d` - Mover para cima/esquerda/baixo/direita
+- `i` - Ver inventário
+- `p` - Ver status do personagem
+- `h` - Mostrar ajuda/tutorial
+- `q` - Salvar jogo
+- `e` - Voltar ao menu principal
+
+### 🗺️ Elementos do Mapa
+
+| Símbolo | Descrição | Pode Atravessar? |
+|---------|-----------|------------------|
+| `P` | Jogador (você) | - |
+| `Z` | Zumbi (inicia combate) | Sim |
+| `+` | Medkit (cura HP) | Sim |
+| `!` | Arma (aumenta ataque) | Sim |
+| `^` | Munição | Sim |
+| `#` | Obstáculo/Rocha | Não |
+| `T` | Árvore | Não |
+| `~` | Água | Não |
+| `B` | Prédio | Não |
+| `,` | Grama | Sim |
+| `.` | Chão livre | Sim |
 
 > *Este é o coração de nosso projeto algumas features estão sujeitas à alterações, porém estamos em trabalho contínuo para melhorar a sua experiencia , sinta-se livre para dar sugestões...*
+---
+
+## ✨ Novidades da Versão Atual
+
+### Sistema de Overworld Expandido
+- **Mapa Maior:** Expandido de 10x10 para 25x20 tiles, oferecendo mais espaço para exploração
+- **Terrenos Variados:** Adicionados múltiplos tipos de terreno (grama, árvores, água, prédios abandonados)
+- **Geração Procedural:** Cada novo jogo cria um mapa único com distribuição aleatória de terrenos e itens
+
+### Melhorias de Gameplay
+- **Três Tipos de Itens:** Medkits, Armas e Munição distribuídos pelo mapa
+- **Feedback Aprimorado:** Mensagens descritivas quando não é possível mover (ex: "Você não pode atravessar água!")
+- **Estatísticas em Tempo Real:** Visualização de zumbis restantes e itens disponíveis no mapa
+- **Tutorial In-Game:** Ajuda acessível a qualquer momento pressionando 'h'
+- **Progressão Visual:** Barra de XP exibida no HUD do jogo
+
+### Melhorias de Interface
+- **HUD Informativo:** Exibe posição, HP, nível, XP e contadores de objetivos
+- **Legenda Clara:** Explicação de todos os símbolos do mapa
+- **Mensagens de Boas-Vindas:** Introdução narrativa ao iniciar novo jogo
+
 ---
 
 ## 🌍 Interface Web (opcional)
@@ -80,23 +133,48 @@ Você pode acessar a versão do site em:
 
 ## Passos para rodar o projeto localmente
 
-1. Estar Utilizando o Sistema Operacional Windows
+### Windows
 
-2. Clone o repositório:
+1. Clone o repositório:
 ```bash
-git clone https://github.com/LucasCabra7/Algorithm-group-2.git
+git clone https://github.com/Monkius-Maximus/Algorithm-group-2-diogoversion.git
 ```
-3. Navegue até o diretório do projeto
+
+2. Navegue até o diretório do projeto:
 ```bash
-cd Algorithm-group-2
+cd Algorithm-group-2-diogoversion
 ```
-4. Compile o projeto
+
+3. Compile o projeto:
+```bash
+gcc src/*.c -I./include -o zombie.exe
+```
+
+4. Execute o programa:
+```bash
+zombie.exe
+```
+
+### Linux/macOS
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/Monkius-Maximus/Algorithm-group-2-diogoversion.git
+```
+
+2. Navegue até o diretório do projeto:
+```bash
+cd Algorithm-group-2-diogoversion
+```
+
+3. Compile o projeto:
 ```bash
 gcc src/*.c -I./include -o zombie
 ```
-5. 4. Execute o programa
+
+4. Execute o programa:
 ```bash
-./zombie.exe
+./zombie
 ```
 
 
