@@ -7,36 +7,72 @@
 void criar_inimigo(Inimigo *inimigo, const char* nome, int hp, int atk, int def, int xp);
 
 void map_init(Map *mapa) {
-    // Limpa o mapa e gera paredes aleatórias
+    // Inicializa o mapa com grama como base
     for (int y = 0; y < MAP_H; y++) {
         for (int x = 0; x < MAP_W; x++) {
             int r = rand() % 100;
-            if (r < 15) { // 15% de chance de ser uma parede
+            if (r < 50) { // 50% grama
+                mapa->grid[y][x] = TILE_GRASS;
+            } else if (r < 55) { // 5% árvores
+                mapa->grid[y][x] = TILE_TREE;
+            } else if (r < 60) { // 5% água
+                mapa->grid[y][x] = TILE_WATER;
+            } else if (r < 70) { // 10% paredes/rochas
                 mapa->grid[y][x] = TILE_WALL;
-            } else {
+            } else { // 30% chão vazio
                 mapa->grid[y][x] = TILE_EMPTY;
             }
         }
     }
 
-    //  Inicializa e cria os inimigos com atributos variados
+    // Cria algumas construções (prédios abandonados)
+    int num_buildings = 3;
+    for (int i = 0; i < num_buildings; i++) {
+        int bx = rand() % (MAP_W - 4) + 2;
+        int by = rand() % (MAP_H - 4) + 2;
+        // Cria um prédio 3x3
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (bx + dx < MAP_W && by + dy < MAP_H) {
+                    if (dx == 0 && dy == 0) {
+                        mapa->grid[by + dy][bx + dx] = TILE_EMPTY; // Centro vazio
+                    } else {
+                        mapa->grid[by + dy][bx + dx] = TILE_BUILDING;
+                    }
+                }
+            }
+        }
+    }
+
+    // Garante uma área inicial limpa para o jogador (canto superior esquerdo)
+    for (int y = 0; y < 3; y++) {
+        for (int x = 0; x < 3; x++) {
+            mapa->grid[y][x] = TILE_EMPTY;
+        }
+    }
+
+    // Inicializa e cria os inimigos com atributos variados
     mapa->num_inimigos = 0;
-    int inimigos_a_criar = 7; 
+    int inimigos_a_criar = 12; // Mais inimigos para mapa maior
 
     for (int i = 0; i < inimigos_a_criar; i++) {
-        // Para se não houver mais espaço no  array de inimigos
         if (mapa->num_inimigos >= MAX_INIMIGOS) {
             break;
         }
 
-        // Escolhe uma posição aleatória que esteja vazia (TILE_EMPTY)
+        // Escolhe uma posição aleatória que esteja vazia ou em grama
         int x, y;
+        int tentativas = 0;
         do {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
-        } while (mapa->grid[y][x] != TILE_EMPTY);
+            tentativas++;
+            if (tentativas > 100) break; // Evita loop infinito
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
-        // Pega um espaço na lista de inimigos
+        // Evita spawnar muito perto do jogador
+        if (x < 4 && y < 4) continue;
+
         Inimigo *novo_inimigo = &mapa->inimigos[mapa->num_inimigos];
 
         // Decide aleatoriamente qual tipo de inimigo criar
@@ -49,29 +85,88 @@ void map_init(Map *mapa) {
             criar_inimigo(novo_inimigo, "Zumbi Robusto", 60, 6, 5, 20);
         }
         
-        // Guarda a posição do inimigo na sua própria struct
         novo_inimigo->pos_x = x;
         novo_inimigo->pos_y = y;
         
-        // Coloca um 'Z' no mapa para representar o inimigo visualmente
         mapa->grid[y][x] = TILE_ZOMBIE; 
         mapa->num_inimigos++; 
     }
 
- int itens_a_criar = 5;
-    for (int i = 0; i < itens_a_criar; i++) {
+    // Distribui diferentes tipos de itens pelo mapa
+    // Medkits
+    int medkits = 4;
+    for (int i = 0; i < medkits; i++) {
         int x, y;
+        int tentativas = 0;
         do {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
-        } while (mapa->grid[y][x] != TILE_EMPTY);
+            tentativas++;
+            if (tentativas > 100) break;
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
-        mapa->grid[y][x] = TILE_ITEM;
+        mapa->grid[y][x] = TILE_MEDKIT;
+    }
+
+    // Armas
+    int weapons = 2;
+    for (int i = 0; i < weapons; i++) {
+        int x, y;
+        int tentativas = 0;
+        do {
+            x = rand() % MAP_W;
+            y = rand() % MAP_H;
+            tentativas++;
+            if (tentativas > 100) break;
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
+
+        mapa->grid[y][x] = TILE_WEAPON;
+    }
+
+    // Munição
+    int ammo = 6;
+    for (int i = 0; i < ammo; i++) {
+        int x, y;
+        int tentativas = 0;
+        do {
+            x = rand() % MAP_W;
+            y = rand() % MAP_H;
+            tentativas++;
+            if (tentativas > 100) break;
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
+
+        mapa->grid[y][x] = TILE_AMMO;
     }
 }
 
 void map_print(const Map *m, const Player *p){
-    printf("\nMapa (P = jogador, Z = zumbi, # = obstaculo, * = item)\n");
+    // Conta zumbis vivos e itens disponíveis
+    int zumbis_vivos = 0;
+    int itens_disponiveis = 0;
+    
+    for (int i = 0; i < m->num_inimigos; i++) {
+        if (m->inimigos[i].ativo) {
+            zumbis_vivos++;
+        }
+    }
+    
+    for (int y = 0; y < MAP_H; y++) {
+        for (int x = 0; x < MAP_W; x++) {
+            Tile t = m->grid[y][x];
+            if (t == TILE_MEDKIT || t == TILE_WEAPON || t == TILE_AMMO || t == TILE_ITEM) {
+                itens_disponiveis++;
+            }
+        }
+    }
+    
+    printf("\n=== ZOMBIE RAMPAGE - OVERWORLD ===\n");
+    printf("Posicao: (%d, %d) | HP: %d/%d | Nivel: %d | XP: %d/%d\n", 
+           p->pos_x, p->pos_y, p->hp, p->hp_max, p->nivel, p->xp, p->xp_proximo_nivel);
+    printf("Zumbis restantes: %d | Itens no mapa: %d\n", zumbis_vivos, itens_disponiveis);
+    printf("Legenda: P=Voce Z=Zumbi #=Obstaculo T=Arvore ~=Agua B=Predio\n");
+    printf("         +=Medkit !=Arma ^=Municao ,=Grama .=Chao\n");
+    printf("--------------------------------------------------\n");
+    
     for(int y = 0; y < MAP_H; y++){
         for(int x = 0; x < MAP_W; x++){
             if(p->pos_x == x && p->pos_y == y){
@@ -92,12 +187,34 @@ void map_print(const Map *m, const Player *p){
             case TILE_ITEM:
                 putchar('*');
                 break;
+            case TILE_GRASS:
+                putchar(',');
+                break;
+            case TILE_TREE:
+                putchar('T');
+                break;
+            case TILE_WATER:
+                putchar('~');
+                break;
+            case TILE_BUILDING:
+                putchar('B');
+                break;
+            case TILE_MEDKIT:
+                putchar('+');
+                break;
+            case TILE_WEAPON:
+                putchar('!');
+                break;
+            case TILE_AMMO:
+                putchar('^');
+                break;
             default:
                 putchar('?');
             }
         }
         putchar('\n');
     }
+    printf("--------------------------------------------------\n");
 };
 
 // Função auxiliar para criar um tipo de inimigo 
@@ -115,7 +232,14 @@ int map_move_player(Map *m, Player *p, int dx, int dy){
     int nx = p->pos_x + dx;
     int ny = p->pos_y + dy;
     if(nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) return 0;
-    if(m->grid[ny][nx] == TILE_WALL) return 0;
+    
+    // Não pode atravessar paredes, árvores, água ou prédios
+    if(m->grid[ny][nx] == TILE_WALL || 
+       m->grid[ny][nx] == TILE_TREE || 
+       m->grid[ny][nx] == TILE_WATER ||
+       m->grid[ny][nx] == TILE_BUILDING) {
+        return 0;
+    }
 
     // Movimentos:
     p->pos_x = nx;
@@ -141,4 +265,15 @@ void map_place_player(Map *m, Player *p){
     }
     // Voltar a trás (fallback):
     p->pos_x = 0; p->pos_y = 0;
+}
+
+const char* map_get_tile_name(Tile tile) {
+    switch(tile) {
+        case TILE_WALL: return "uma parede";
+        case TILE_TREE: return "uma arvore";
+        case TILE_WATER: return "agua";
+        case TILE_BUILDING: return "um predio";
+        case TILE_ZOMBIE: return "um zumbi";
+        default: return "obstaculo";
+    }
 }

@@ -209,7 +209,7 @@ int main()
                             if (res == 0) // Venceu!
                             {
                                 // Remove o 'Z' do mapa após a vitória
-                                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
 
                                 // Chance de dropar um item:
                                 if ((rand() % 100) < 40)
@@ -233,10 +233,48 @@ int main()
                     }
                     else
                     {
-                        // Checar item
-                        if (mapa.grid[jogador.pos_y][jogador.pos_x] == TILE_ITEM)
+                        // Checar diferentes tipos de itens
+                        Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
+                        Item it;
+                        int found_item = 0;
+                        
+                        if (current_tile == TILE_MEDKIT)
                         {
-                            Item it;
+                            it.tipo = ITEM_MEDKIT;
+                            strncpy(it.nome, "Medkit", 31);
+                            it.nome[31] = '\0';
+                            it.poder = 25;
+                            it.quantidade = 1;
+                            inventory_add(&jogador.inventario, it);
+                            printf("Voce encontrou um Medkit! (+25 HP quando usado)\n");
+                            found_item = 1;
+                        }
+                        else if (current_tile == TILE_WEAPON)
+                        {
+                            it.tipo = ITEM_PISTOLA;
+                            strncpy(it.nome, "Pistola", 31);
+                            it.nome[31] = '\0';
+                            it.poder = 8;
+                            it.quantidade = 1;
+                            inventory_add(&jogador.inventario, it);
+                            printf("Voce encontrou uma Pistola! (Aumenta seu ataque)\n");
+                            jogador.ataque += 5; // Bonus permanente
+                            found_item = 1;
+                        }
+                        else if (current_tile == TILE_AMMO)
+                        {
+                            it.tipo = ITEM_MUNI;
+                            strncpy(it.nome, "Municao", 31);
+                            it.nome[31] = '\0';
+                            it.poder = 1;
+                            it.quantidade = 5;
+                            inventory_add(&jogador.inventario, it);
+                            printf("Voce encontrou Municao! (x5)\n");
+                            found_item = 1;
+                        }
+                        else if (current_tile == TILE_ITEM)
+                        {
+                            // Item genérico antigo (mantido para compatibilidade)
                             it.tipo = ITEM_MEDKIT;
                             strncpy(it.nome, "Medkit", 31);
                             it.nome[31] = '\0';
@@ -244,14 +282,32 @@ int main()
                             it.quantidade = 1;
                             inventory_add(&jogador.inventario, it);
                             printf("Voce encontrou um item: Medkit!\n");
-                            mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                            found_item = 1;
+                        }
+                        
+                        if (found_item) {
+                            mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS; // Deixa grama no lugar
                             pause_console();
                         }
                     }
                 }
                 else
                 {
-                    printf("Nao foi possivel mover para essa direcao.\n");
+                    // Melhor feedback sobre por que não pode mover
+                    int nx = jogador.pos_x;
+                    int ny = jogador.pos_y;
+                    
+                    if (cmd == 'w') ny--;
+                    else if (cmd == 's') ny++;
+                    else if (cmd == 'a') nx--;
+                    else if (cmd == 'd') nx++;
+                    
+                    if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) {
+                        printf("Voce nao pode sair dos limites do mapa!\n");
+                    } else {
+                        Tile bloqueio = mapa.grid[ny][nx];
+                        printf("Voce nao pode atravessar %s!\n", map_get_tile_name(bloqueio));
+                    }
                     pause_console();
                 }
             }
@@ -351,7 +407,7 @@ int main()
                                 if (res == 0)
                                 {
                                     // Jogador Venceu:
-                                    mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                                    mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
                                     int r = rand() % 100;
                                     if (r < 40)
                                     {
@@ -378,9 +434,48 @@ int main()
                         }
                         else
                         {
-                            if (mapa.grid[jogador.pos_y][jogador.pos_x] == TILE_ITEM)
+                            // Checar diferentes tipos de itens
+                            Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
+                            Item it;
+                            int found_item = 0;
+                            
+                            if (current_tile == TILE_MEDKIT)
                             {
-                                Item it;
+                                it.tipo = ITEM_MEDKIT;
+                                strncpy(it.nome, "Medkit", 31);
+                                it.nome[31] = '\0';
+                                it.poder = 25;
+                                it.quantidade = 1;
+                                inventory_add(&jogador.inventario, it);
+                                printf("Voce encontrou um Medkit! (+25 HP quando usado)\n");
+                                found_item = 1;
+                            }
+                            else if (current_tile == TILE_WEAPON)
+                            {
+                                it.tipo = ITEM_PISTOLA;
+                                strncpy(it.nome, "Pistola", 31);
+                                it.nome[31] = '\0';
+                                it.poder = 8;
+                                it.quantidade = 1;
+                                inventory_add(&jogador.inventario, it);
+                                printf("Voce encontrou uma Pistola! (Aumenta seu ataque)\n");
+                                jogador.ataque += 5; // Bonus permanente
+                                found_item = 1;
+                            }
+                            else if (current_tile == TILE_AMMO)
+                            {
+                                it.tipo = ITEM_MUNI;
+                                strncpy(it.nome, "Municao", 31);
+                                it.nome[31] = '\0';
+                                it.poder = 1;
+                                it.quantidade = 5;
+                                inventory_add(&jogador.inventario, it);
+                                printf("Voce encontrou Municao! (x5)\n");
+                                found_item = 1;
+                            }
+                            else if (current_tile == TILE_ITEM)
+                            {
+                                // Item genérico antigo (mantido para compatibilidade)
                                 it.tipo = ITEM_MEDKIT;
                                 strncpy(it.nome, "Medkit", 31);
                                 it.nome[31] = '\0';
@@ -388,14 +483,32 @@ int main()
                                 it.quantidade = 1;
                                 inventory_add(&jogador.inventario, it);
                                 printf("Voce encontrou um item: Medkit!\n");
-                                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                                found_item = 1;
+                            }
+                            
+                            if (found_item) {
+                                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS; // Deixa grama no lugar
                                 pause_console();
                             }
                         }
                     }
                     else
                     {
-                        printf("Nao foi possivel mover para essa direcao.\n");
+                        // Melhor feedback sobre por que não pode mover
+                        int nx = jogador.pos_x;
+                        int ny = jogador.pos_y;
+                        
+                        if (cmd == 'w') ny--;
+                        else if (cmd == 's') ny++;
+                        else if (cmd == 'a') nx--;
+                        else if (cmd == 'd') nx++;
+                        
+                        if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) {
+                            printf("Voce nao pode sair dos limites do mapa!\n");
+                        } else {
+                            Tile bloqueio = mapa.grid[ny][nx];
+                            printf("Voce nao pode atravessar %s!\n", map_get_tile_name(bloqueio));
+                        }
                         pause_console();
                     }
                 }
