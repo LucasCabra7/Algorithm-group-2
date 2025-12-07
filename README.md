@@ -75,6 +75,17 @@ O sistema é composto pelas seguintes classes:
 
 ### 🎮 Controles do Jogo
 
+**Menu Principal:**
+- `1` - Jogar (novo jogo)
+- `2` - Carregar Jogo
+- `3` - Opções (volume e dificuldade)
+- `4` - Estatísticas (visualizar progresso)
+- `5` - Sobre (informações do jogo)
+- `6` - Tutorial (ajuda)
+- `7` - Reset (apagar todos os dados)
+- `8` - Sair
+
+**Durante o Jogo:**
 - `w/a/s/d` - Mover para cima/esquerda/baixo/direita
 - `i` - Ver inventário
 - `p` - Ver status do personagem
@@ -102,6 +113,19 @@ O sistema é composto pelas seguintes classes:
 ---
 
 ## ✨ Novidades da Versão Atual
+
+### Sistema de Game States e Menu Aprimorado
+- **Menu Principal Completo:** Novo sistema de navegação com 8 opções
+- **Sistema de Opções:** Configure volume da música (0-100%) e dificuldade (Fácil/Normal/Difícil)
+- **Estatísticas do Jogador:** Acompanhe seu progresso com métricas detalhadas:
+  - Zumbis derrotados
+  - Itens coletados
+  - Mortes e fugas
+  - Jogos salvos
+  - Tempo total de jogo
+  - Data da primeira e última partida
+- **Função Reset:** Limpe todos os dados do jogo sem desinstalar
+- **Tela Sobre:** Informações sobre o projeto e equipe
 
 ### Sistema de Overworld Expandido
 - **Mapa Maior:** Expandido de 10x10 para 25x20 tiles, oferecendo mais espaço para exploração
@@ -150,6 +174,11 @@ cd Algorithm-group-2-diogoversion
 gcc src/*.c -I./include -o zombie.exe
 ```
 
+Ou compile especificamente:
+```bash
+gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -o zombie.exe
+```
+
 4. Execute o programa:
 ```bash
 zombie.exe
@@ -170,6 +199,11 @@ cd Algorithm-group-2-diogoversion
 3. Compile o projeto:
 ```bash
 gcc src/*.c -I./include -o zombie
+```
+
+Ou compile especificamente:
+```bash
+gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -o zombie
 ```
 
 4. Execute o programa:

@@ -29,7 +29,9 @@ void stats_init(GameStatistics *stats) {
     stats->jogos_salvos = 0;
     stats->fugas = 0;
     stats->tempo_jogo_segundos = 0;
-    // Nota: primeira_partida é definida aqui e deve ser preservada ao carregar stats existentes
+    // Inicializa primeira_partida e ultima_partida com a hora atual.
+    // Isso é usado quando não há stats.dat (primeira execução) ou após um reset.
+    // Se stats.dat existir, stats_load() sobrescreverá esses valores com os salvos.
     stats->primeira_partida = time(NULL);
     stats->ultima_partida = time(NULL);
 }
