@@ -157,7 +157,7 @@ Você pode acessar a versão do site em:
 
 ## Passos para rodar o projeto localmente
 
-### Windows
+### Windows (Versão Gráfica com Raylib)
 
 1. Clone o repositório:
 ```bash
@@ -169,12 +169,21 @@ git clone https://github.com/Monkius-Maximus/Algorithm-group-2-diogoversion.git
 cd Algorithm-group-2-diogoversion
 ```
 
-3. Compile o projeto:
+3. **Certifique-se de ter o Raylib instalado** (conforme instruções em https://www.raylib.com/)
+
+4. Compile a versão gráfica:
 ```bash
-gcc src/*.c -I./include -o zombie.exe
+gcc src/main_gui.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -lraylib -lopengl32 -lgdi32 -lwinmm -o jogo_grafico.exe
 ```
 
-Ou compile especificamente:
+5. Execute o jogo gráfico:
+```bash
+./jogo_grafico.exe
+```
+
+### Windows (Versão Terminal - Opcional)
+
+Para compilar a versão de terminal (sem interface gráfica):
 ```bash
 gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -o zombie.exe
 ```
@@ -184,7 +193,7 @@ gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Ar
 zombie.exe
 ```
 
-### Linux/macOS
+### Linux/macOS (Versão Gráfica com Raylib)
 
 1. Clone o repositório:
 ```bash
@@ -196,19 +205,23 @@ git clone https://github.com/Monkius-Maximus/Algorithm-group-2-diogoversion.git
 cd Algorithm-group-2-diogoversion
 ```
 
-3. Compile o projeto:
+3. **Certifique-se de ter o Raylib instalado** (conforme instruções em https://www.raylib.com/)
+
+4. Compile a versão gráfica:
 ```bash
-gcc src/*.c -I./include -o zombie
+gcc src/main_gui.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o jogo_grafico
 ```
 
-Ou compile especificamente:
+5. Execute o jogo gráfico:
+```bash
+./jogo_grafico
+```
+
+### Linux/macOS (Versão Terminal - Opcional)
+
+Para compilar a versão de terminal (sem interface gráfica):
 ```bash
 gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -o zombie
-```
-
-4. Execute o programa:
-```bash
-./zombie
 ```
 
 

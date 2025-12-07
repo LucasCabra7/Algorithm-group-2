@@ -2,7 +2,10 @@
 #include "Mapa.h"
 #include "Personagem.h"
 #include "Inventario.h"
+#include "GameState.h"
 #include <stdio.h>
+#include <time.h>
+#include <string.h>
 
 // --- CONFIGURAÇÕES VISUAIS ---
 #define TILE_SIZE 48        // Tamanho de cada quadrado (em pixels). 48x48 é bom para sprites.
@@ -18,44 +21,144 @@
 
 // Estados do Jogo
 typedef enum { 
+    ESTADO_MENU_PRINCIPAL,
+    ESTADO_CRIANDO_PERSONAGEM,
     ESTADO_EXPLORANDO, 
-    ESTADO_BATALHA 
-} GameState;
+    ESTADO_BATALHA,
+    ESTADO_OPCOES,
+    ESTADO_ESTATISTICAS,
+    ESTADO_SOBRE,
+    ESTADO_TUTORIAL
+} EstadoJogo;
 
 int main(void) {
     // 1. Inicialização da Janela
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Zombie Rampage - Overworld");
     SetTargetFPS(60);
 
-    // 2. Carregar Dados do Jogo (Tuas Structs)
+    // 2. Carregar configurações e estatísticas
+    GameConfig config;
+    GameStatistics stats;
+    time_t inicio_sessao = 0;
+    
+    if (!config_load(&config, "config.dat")) {
+        config_init(&config);
+        config_save(&config, "config.dat");
+    }
+    
+    if (!stats_load(&stats, "stats.dat")) {
+        stats_init(&stats);
+        stats_save(&stats, "stats.dat");
+    }
+
+    // 3. Variáveis do Jogo
     Map mapa;
     Player jogador;
-    Inventory inventario; // Adicionei para evitar erros, mesmo se não usarmos agora
+    Inventory inventario;
+    int jogoInicializado = 0;
 
-    // Inicializa lógica antiga
-    map_init(&mapa);
-    jogador = player_creat("Sobrevivente", SOLDADO);
+    // 4. Estado inicial
+    EstadoJogo estado = ESTADO_MENU_PRINCIPAL;
+    int opcaoMenu = 0;
+    int opcaoOpcoes = 0;
     
-    // Força uma posição segura inicial
-    jogador.pos_x = MAP_W / 2;
-    jogador.pos_y = MAP_H / 2;
-    mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY; 
-
-    // 3. Configuração da CÂMARA (O Segredo do Top-Down)
+    // 5. Configuração da CÂMARA
     Camera2D camera = { 0 };
-    camera.target = (Vector2){ jogador.pos_x * TILE_SIZE, jogador.pos_y * TILE_SIZE };
     camera.offset = (Vector2){ SCREEN_WIDTH / 2.0f, SCREEN_HEIGHT / 2.0f };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
-
-    GameState estado = ESTADO_EXPLORANDO;
 
     // --- GAME LOOP ---
     while (!WindowShouldClose()) {
         
         // --- ATUALIZAÇÃO ---
         
-        if (estado == ESTADO_EXPLORANDO) {
+        if (estado == ESTADO_MENU_PRINCIPAL) {
+            // Navegação no menu
+            if (IsKeyPressed(KEY_DOWN)) opcaoMenu = (opcaoMenu + 1) % 8;
+            if (IsKeyPressed(KEY_UP)) opcaoMenu = (opcaoMenu - 1 + 8) % 8;
+            
+            if (IsKeyPressed(KEY_ENTER)) {
+                switch (opcaoMenu) {
+                    case 0: // Jogar
+                        inicio_sessao = time(NULL);
+                        map_init(&mapa);
+                        jogador = player_creat("Sobrevivente", SOLDADO);
+                        jogador.pos_x = MAP_W / 2;
+                        jogador.pos_y = MAP_H / 2;
+                        mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                        camera.target = (Vector2){ jogador.pos_x * TILE_SIZE, jogador.pos_y * TILE_SIZE };
+                        jogoInicializado = 1;
+                        estado = ESTADO_EXPLORANDO;
+                        break;
+                    case 1: // Carregar Jogo
+                        // TODO: Implementar carregamento
+                        break;
+                    case 2: // Opções
+                        estado = ESTADO_OPCOES;
+                        opcaoOpcoes = 0;
+                        break;
+                    case 3: // Estatísticas
+                        estado = ESTADO_ESTATISTICAS;
+                        break;
+                    case 4: // Sobre
+                        estado = ESTADO_SOBRE;
+                        break;
+                    case 5: // Tutorial
+                        estado = ESTADO_TUTORIAL;
+                        break;
+                    case 6: // Reset
+                        stats_reset(&stats);
+                        stats_save(&stats, "stats.dat");
+                        config_init(&config);
+                        config_save(&config, "config.dat");
+                        break;
+                    case 7: // Sair
+                        CloseWindow();
+                        return 0;
+                }
+            }
+        }
+        else if (estado == ESTADO_OPCOES) {
+            if (IsKeyPressed(KEY_DOWN)) opcaoOpcoes = (opcaoOpcoes + 1) % 3;
+            if (IsKeyPressed(KEY_UP)) opcaoOpcoes = (opcaoOpcoes - 1 + 3) % 3;
+            
+            if (IsKeyPressed(KEY_ENTER)) {
+                if (opcaoOpcoes == 0) {
+                    // Ajustar volume
+                    config.volume_musica = (config.volume_musica + 10) % 110;
+                    config_save(&config, "config.dat");
+                } else if (opcaoOpcoes == 1) {
+                    // Mudar dificuldade
+                    config.dificuldade = (config.dificuldade % 3) + 1;
+                    config_save(&config, "config.dat");
+                } else if (opcaoOpcoes == 2) {
+                    // Voltar
+                    estado = ESTADO_MENU_PRINCIPAL;
+                }
+            }
+            
+            if (IsKeyPressed(KEY_ESCAPE)) {
+                estado = ESTADO_MENU_PRINCIPAL;
+            }
+        }
+        else if (estado == ESTADO_ESTATISTICAS || estado == ESTADO_SOBRE || estado == ESTADO_TUTORIAL) {
+            if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
+                estado = ESTADO_MENU_PRINCIPAL;
+            }
+        }
+        else if (estado == ESTADO_EXPLORANDO) {
+            // Voltar ao menu
+            if (IsKeyPressed(KEY_ESCAPE)) {
+                if (inicio_sessao > 0) {
+                    time_t fim_sessao = time(NULL);
+                    int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                    stats_atualizar_tempo(&stats, tempo_sessao);
+                    stats_save(&stats, "stats.dat");
+                }
+                estado = ESTADO_MENU_PRINCIPAL;
+            }
+            
             int dx = 0, dy = 0;
             
             // Movimentação (Podes ajustar para manter pressionado ou toque único)
@@ -66,13 +169,19 @@ int main(void) {
 
             if (dx != 0 || dy != 0) {
                 // Tenta mover usando tua lógica de Mapa.c
-                // Nota: map_move_player retorna 1 se moveu, 0 se bateu na parede
                 if (map_move_player(&mapa, &jogador, dx, dy)) {
+                    
+                    // Checar itens coletados
+                    Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
+                    if (current_tile == TILE_MEDKIT || current_tile == TILE_WEAPON || 
+                        current_tile == TILE_AMMO || current_tile == TILE_ITEM) {
+                        stats_registrar_item_coletado(&stats);
+                        mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                    }
                     
                     // Lógica de Encontro
                     if (map_check_encounter(&mapa, &jogador)) {
                         estado = ESTADO_BATALHA;
-                        printf("Log: Entrou em combate!\n");
                     }
                 }
             }
@@ -88,10 +197,123 @@ int main(void) {
             camera.target.x += (targetPos.x - camera.target.x) * 0.1f;
             camera.target.y += (targetPos.y - camera.target.y) * 0.1f;
         }
+        else if (estado == ESTADO_BATALHA) {
+            if (IsKeyPressed(KEY_SPACE)) {
+                // Mata o zumbi e registra estatística
+                stats_registrar_zumbi_derrotado(&stats);
+                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                estado = ESTADO_EXPLORANDO;
+            }
+            if (IsKeyPressed(KEY_F)) {
+                // Fuga
+                stats_registrar_fuga(&stats);
+                estado = ESTADO_EXPLORANDO;
+            }
+        }
 
         // --- DESENHO ---
         BeginDrawing();
-        ClearBackground(BLACK); // Fundo preto para o que estiver fora do mapa
+        ClearBackground(BLACK);
+
+        if (estado == ESTADO_MENU_PRINCIPAL) {
+            // Desenhar menu principal
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            
+            DrawText("ZOMBIE RAMPAGE", SCREEN_WIDTH/2 - 180, 80, 40, RED);
+            DrawText("Menu Principal", SCREEN_WIDTH/2 - 100, 140, 20, WHITE);
+            
+            const char* opcoes[] = {
+                "1. Jogar",
+                "2. Carregar Jogo",
+                "3. Opcoes",
+                "4. Estatisticas",
+                "5. Sobre",
+                "6. Tutorial",
+                "7. Reset",
+                "8. Sair"
+            };
+            
+            for (int i = 0; i < 8; i++) {
+                Color cor = (i == opcaoMenu) ? YELLOW : WHITE;
+                DrawText(opcoes[i], SCREEN_WIDTH/2 - 80, 200 + i * 35, 20, cor);
+            }
+            
+            DrawText("Use SETAS para navegar, ENTER para selecionar", 180, 550, 15, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_OPCOES) {
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            DrawText("OPCOES", SCREEN_WIDTH/2 - 60, 80, 40, RED);
+            
+            char volumeText[50];
+            sprintf(volumeText, "Volume: %d%%", config.volume_musica);
+            Color cor0 = (opcaoOpcoes == 0) ? YELLOW : WHITE;
+            DrawText(volumeText, SCREEN_WIDTH/2 - 100, 200, 20, cor0);
+            
+            char difText[50];
+            const char* dificuldades[] = {"Facil", "Normal", "Dificil"};
+            sprintf(difText, "Dificuldade: %s", dificuldades[config.dificuldade - 1]);
+            Color cor1 = (opcaoOpcoes == 1) ? YELLOW : WHITE;
+            DrawText(difText, SCREEN_WIDTH/2 - 100, 240, 20, cor1);
+            
+            Color cor2 = (opcaoOpcoes == 2) ? YELLOW : WHITE;
+            DrawText("Voltar", SCREEN_WIDTH/2 - 100, 280, 20, cor2);
+            
+            DrawText("ENTER para alterar, ESC para voltar", 230, 550, 15, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_ESTATISTICAS) {
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            DrawText("ESTATISTICAS", SCREEN_WIDTH/2 - 120, 80, 40, RED);
+            
+            char texto[100];
+            sprintf(texto, "Zumbis Derrotados: %d", stats.zumbis_derrotados);
+            DrawText(texto, 200, 180, 20, WHITE);
+            
+            sprintf(texto, "Itens Coletados: %d", stats.itens_coletados);
+            DrawText(texto, 200, 220, 20, WHITE);
+            
+            sprintf(texto, "Mortes: %d", stats.mortes);
+            DrawText(texto, 200, 260, 20, WHITE);
+            
+            sprintf(texto, "Fugas: %d", stats.fugas);
+            DrawText(texto, 200, 300, 20, WHITE);
+            
+            int horas = stats.tempo_jogo_segundos / 3600;
+            int minutos = (stats.tempo_jogo_segundos % 3600) / 60;
+            sprintf(texto, "Tempo Jogado: %dh %dm", horas, minutos);
+            DrawText(texto, 200, 340, 20, WHITE);
+            
+            DrawText("Pressione ESC ou ENTER para voltar", 220, 550, 15, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_SOBRE) {
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            DrawText("SOBRE", SCREEN_WIDTH/2 - 60, 80, 40, RED);
+            
+            DrawText("ZOMBIE RAMPAGE", 280, 160, 25, WHITE);
+            DrawText("Jogo desenvolvido para a disciplina de Algoritmos", 150, 200, 15, LIGHTGRAY);
+            DrawText("Universidade Federal de Pernambuco - CIn", 180, 230, 15, LIGHTGRAY);
+            
+            DrawText("Equipe:", 300, 280, 20, WHITE);
+            DrawText("Bruno Gabriel, Diogo da Silva", 220, 310, 15, LIGHTGRAY);
+            DrawText("Gryghor Camonni, Flavia Vitoria, Lucas Cabral", 160, 335, 15, LIGHTGRAY);
+            
+            DrawText("Pressione ESC ou ENTER para voltar", 220, 550, 15, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_TUTORIAL) {
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            DrawText("TUTORIAL", SCREEN_WIDTH/2 - 80, 80, 40, RED);
+            
+            DrawText("Controles:", 280, 160, 25, WHITE);
+            DrawText("W/A/S/D ou SETAS - Mover", 240, 200, 18, LIGHTGRAY);
+            DrawText("ESC - Voltar ao menu", 240, 230, 18, LIGHTGRAY);
+            DrawText("ESPACO - Atacar no combate", 240, 260, 18, LIGHTGRAY);
+            DrawText("F - Fugir do combate", 240, 290, 18, LIGHTGRAY);
+            
+            DrawText("Objetivo:", 280, 340, 25, WHITE);
+            DrawText("Sobreviva derrotando zumbis e coletando itens!", 170, 380, 18, LIGHTGRAY);
+            
+            DrawText("Pressione ESC ou ENTER para voltar", 220, 550, 15, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_EXPLORANDO || estado == ESTADO_BATALHA) {
 
             // INICIO DO MODO 2D (Tudo aqui dentro move-se com a câmara)
             BeginMode2D(camera);
@@ -137,22 +359,18 @@ int main(void) {
             // FIM DO MODO 2D (Coisas estáticas na tela, como UI)
 
             // --- UI / HUD ---
-            DrawText("MiniDayZ Clone - Alpha", 10, 10, 20, WHITE);
+            DrawText("Zombie Rampage - Alpha", 10, 10, 20, WHITE);
             DrawText(TextFormat("HP: %d", jogador.hp), 10, 40, 20, GREEN);
             DrawText(TextFormat("Pos: %d, %d", jogador.pos_x, jogador.pos_y), 10, 70, 10, LIGHTGRAY);
+            DrawText("ESC - Menu", 10, 100, 15, LIGHTGRAY);
 
             if (estado == ESTADO_BATALHA) {
                 DrawRectangle(100, 200, 600, 200, Fade(BLACK, 0.8f));
                 DrawRectangleLines(100, 200, 600, 200, WHITE);
                 DrawText("COMBATE!", 350, 220, 30, RED);
-                DrawText("Zumbi te atacou! (Pressione ESPACO para fugir)", 180, 300, 20, WHITE);
-                
-                if (IsKeyPressed(KEY_SPACE)) {
-                    // Lógica temporária para sair do combate
-                    mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY; // Mata o zumbi
-                    estado = ESTADO_EXPLORANDO;
-                }
+                DrawText("ESPACO - Atacar | F - Fugir", 240, 300, 20, WHITE);
             }
+        }
 
         EndDrawing();
     }
