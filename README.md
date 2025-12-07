@@ -188,7 +188,7 @@ Para compilar a versão de terminal (sem interface gráfica):
 gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -o zombie.exe
 ```
 
-4. Execute o programa:
+Execute:
 ```bash
 zombie.exe
 ```
@@ -222,6 +222,11 @@ gcc src/main_gui.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c sr
 Para compilar a versão de terminal (sem interface gráfica):
 ```bash
 gcc src/main.c src/Personagem.c src/Mapa.c src/Inventario.c src/Batalha.c src/Arquivos.c src/GameState.c -I./include -o zombie
+```
+
+Execute:
+```bash
+./zombie
 ```
 
 
