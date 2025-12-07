@@ -1,6 +1,7 @@
 #include "GameState.h"
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 void config_init(GameConfig *cfg) {
     cfg->volume_musica = 50;    // Volume padrão: 50%

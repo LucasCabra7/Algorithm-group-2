@@ -291,7 +291,7 @@ void coletar_item_do_mapa(Map *mapa, Player *jogador, Tile current_tile, GameSta
     
     if (found_item) {
         stats_registrar_item_coletado(stats);
-        stats_save(stats, "stats.dat");
+        // Estatísticas serão salvas ao sair do jogo ou salvar
         mapa->grid[jogador->pos_y][jogador->pos_x] = TILE_GRASS; // Deixa grama no lugar
         pause_console();
     }
@@ -309,12 +309,14 @@ int main()
 
     // Carregar ou inicializar configurações
     if (!config_load(&config, "config.dat")) {
+        // Primeira execução ou arquivo corrompido - usar configurações padrão
         config_init(&config);
         config_save(&config, "config.dat");
     }
 
     // Carregar ou inicializar estatísticas
     if (!stats_load(&stats, "stats.dat")) {
+        // Primeira execução ou arquivo corrompido - criar novas estatísticas
         stats_init(&stats);
         stats_save(&stats, "stats.dat");
     }
@@ -463,7 +465,7 @@ int main()
                             if (res == 0) // Venceu!
                             {
                                 stats_registrar_zumbi_derrotado(&stats);
-                                stats_save(&stats, "stats.dat");
+                                // Estatísticas serão salvas ao sair do jogo ou salvar
                                 // Remove o 'Z' do mapa após a vitória
                                 mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
 
@@ -481,7 +483,7 @@ int main()
                             if (res == 2) // Fugiu
                             {
                                 stats_registrar_fuga(&stats);
-                                stats_save(&stats, "stats.dat");
+                                // Estatísticas serão salvas ao sair do jogo ou salvar
                                 printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
                                 jogador.pos_x = prev_x; // Restaura a posição X anterior
                                 jogador.pos_y = prev_y; // Restaura a posição Y anterior
@@ -632,7 +634,7 @@ int main()
                                 {
                                     // Jogador Venceu:
                                     stats_registrar_zumbi_derrotado(&stats);
-                                    stats_save(&stats, "stats.dat");
+                                    // Estatísticas serão salvas ao sair do jogo ou salvar
                                     mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
                                     int r = rand() % 100;
                                     if (r < 40)
@@ -652,7 +654,7 @@ int main()
                                 {
                                     // Jogador Fugiu:
                                     stats_registrar_fuga(&stats);
-                                    stats_save(&stats, "stats.dat");
+                                    // Estatísticas serão salvas ao sair do jogo ou salvar
                                     printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
                                     jogador.pos_x = prev_x;
                                     jogador.pos_y = prev_y;
