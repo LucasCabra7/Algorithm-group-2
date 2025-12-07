@@ -411,10 +411,12 @@ int main()
                 else if (cmd == 'e')
                 {
                     // Atualizar tempo jogado antes de sair
-                    time_t fim_sessao = time(NULL);
-                    int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
-                    stats_atualizar_tempo(&stats, tempo_sessao);
-                    stats_save(&stats, "stats.dat");
+                    if (inicio_sessao > 0) {
+                        time_t fim_sessao = time(NULL);
+                        int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                        stats_atualizar_tempo(&stats, tempo_sessao);
+                        stats_save(&stats, "stats.dat");
+                    }
                     in_game = 0;
                     continue;
                 }
@@ -579,10 +581,12 @@ int main()
                     else if (cmd == 'e')
                     {
                         // Atualizar tempo jogado antes de sair
-                        time_t fim_sessao = time(NULL);
-                        int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
-                        stats_atualizar_tempo(&stats, tempo_sessao);
-                        stats_save(&stats, "stats.dat");
+                        if (inicio_sessao > 0) {
+                            time_t fim_sessao = time(NULL);
+                            int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                            stats_atualizar_tempo(&stats, tempo_sessao);
+                            stats_save(&stats, "stats.dat");
+                        }
                         in_game = 0;
                         continue;
                     }

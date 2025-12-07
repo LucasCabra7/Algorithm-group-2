@@ -29,6 +29,7 @@ void stats_init(GameStatistics *stats) {
     stats->jogos_salvos = 0;
     stats->fugas = 0;
     stats->tempo_jogo_segundos = 0;
+    // Nota: primeira_partida é definida aqui e deve ser preservada ao carregar stats existentes
     stats->primeira_partida = time(NULL);
     stats->ultima_partida = time(NULL);
 }
