@@ -7,6 +7,7 @@
 #include "Inventario.h"
 #include "Batalha.h"
 #include "Arquivos.h"
+#include "GameState.h"
 #include <time.h>
 
 void pause_console()
@@ -53,12 +54,132 @@ void mostrar_tutorial() {
     pause_console();
 }
 
+void menu_opcoes(GameConfig *config) {
+    int opcoes_ativas = 1;
+    while (opcoes_ativas) {
+        printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+        printf("║                       OPCOES                              ║\n");
+        printf("╚═══════════════════════════════════════════════════════════╝\n\n");
+        printf("Volume da Musica: %d%%\n", config->volume_musica);
+        printf("Dificuldade: ");
+        if (config->dificuldade == 1) printf("Facil\n");
+        else if (config->dificuldade == 2) printf("Normal\n");
+        else if (config->dificuldade == 3) printf("Dificil\n");
+        printf("\n1) Ajustar Volume\n");
+        printf("2) Mudar Dificuldade\n");
+        printf("3) Voltar\n");
+        printf("> ");
+        
+        int op = 0;
+        if (scanf("%d", &op) != 1) {
+            while (getchar() != '\n');
+            continue;
+        }
+        
+        if (op == 1) {
+            printf("Digite o volume (0-100): ");
+            int vol = 0;
+            if (scanf("%d", &vol) == 1) {
+                if (vol >= 0 && vol <= 100) {
+                    config->volume_musica = vol;
+                    config_save(config, "config.dat");
+                    printf("Volume ajustado para %d%%\n", vol);
+                } else {
+                    printf("Volume invalido! Use valores entre 0 e 100.\n");
+                }
+            }
+            pause_console();
+        }
+        else if (op == 2) {
+            printf("Escolha a dificuldade:\n");
+            printf("1) Facil\n2) Normal\n3) Dificil\n> ");
+            int dif = 0;
+            if (scanf("%d", &dif) == 1) {
+                if (dif >= 1 && dif <= 3) {
+                    config->dificuldade = dif;
+                    config_save(config, "config.dat");
+                    printf("Dificuldade alterada!\n");
+                } else {
+                    printf("Opcao invalida!\n");
+                }
+            }
+            pause_console();
+        }
+        else if (op == 3) {
+            opcoes_ativas = 0;
+        }
+    }
+}
+
+void menu_sobre() {
+    printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+    printf("║                    SOBRE O JOGO                           ║\n");
+    printf("╚═══════════════════════════════════════════════════════════╝\n\n");
+    printf("ZOMBIE RAMPAGE\n\n");
+    printf("Projeto desenvolvido para a disciplina de Algoritmos,\n");
+    printf("utilizando a linguagem C e os principios fundamentais da\n");
+    printf("Programacao Orientada a Objetos e Algoritmos.\n\n");
+    printf("O jogo e um RPG 2D pos-apocaliptico em um mundo devastado\n");
+    printf("por um virus que transforma humanos em zumbis. O jogador\n");
+    printf("assume o papel de um sobrevivente que precisa explorar,\n");
+    printf("lutar e administrar recursos para permanecer vivo.\n\n");
+    printf("INTEGRANTES DA EQUIPE:\n");
+    printf("  - Bruno Gabriel (bgprs)\n");
+    printf("  - Diogo da Silva (dsr)\n");
+    printf("  - Gryghor Camonni (gcfc)\n");
+    printf("  - Flavia Vitoria (fves)\n");
+    printf("  - Lucas Cabral (lsc)\n\n");
+    printf("Universidade Federal de Pernambuco - Centro de Informatica\n");
+    printf("(c) 2025 - Todos os direitos reservados\n\n");
+    pause_console();
+}
+
+void menu_reset(GameStatistics *stats, GameConfig *config) {
+    printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+    printf("║                    RESET DO JOGO                          ║\n");
+    printf("╚═══════════════════════════════════════════════════════════╝\n\n");
+    printf("ATENCAO! Esta acao ira:\n");
+    printf("  - Apagar todos os saves de jogo\n");
+    printf("  - Resetar todas as estatisticas\n");
+    printf("  - Restaurar configuracoes padrao\n\n");
+    printf("Tem certeza? (s/n): ");
+    
+    char confirm = 0;
+    scanf(" %c", &confirm);
+    
+    if (confirm == 's' || confirm == 'S') {
+        // Reset estatísticas
+        stats_reset(stats);
+        stats_save(stats, "stats.dat");
+        
+        // Reset configurações
+        config_init(config);
+        config_save(config, "config.dat");
+        
+        // Remover save game
+        remove("savegame.dat");
+        
+        printf("\nTodos os dados foram resetados com sucesso!\n");
+    } else {
+        printf("\nOperacao cancelada.\n");
+    }
+    pause_console();
+}
+
 void menu_principal()
 {
-    printf("\n┹┄┄┄┄┄┲⟮۝⟯┹┄┄┄┄┄┲\n");
-    printf("\n ZOMBIE RAMPAGE \n");
-    printf("\n┹┄┄┄┄┄┲⟮۝⟯┹┄┄┄┄┄┲\n");
-    printf("1) Novo Jogo\n2) Carregar Jogo\n3) Tutorial\n4) Sair\n> ");
+    printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+    printf("║                    ZOMBIE RAMPAGE                         ║\n");
+    printf("╚═══════════════════════════════════════════════════════════╝\n");
+    printf("\n1) Jogar\n");
+    printf("2) Carregar Jogo\n");
+    printf("3) Opcoes\n");
+    printf("4) Estatisticas\n");
+    printf("5) Sobre\n");
+    printf("6) Tutorial\n");
+    printf("7) Reset\n");
+    printf("8) Sair\n");
+    printf("> ");
 };
 
 int escolher_classe()
@@ -117,7 +238,7 @@ void adicionar_item_exemplo(Player *p)
 };
 
 // Função auxiliar para coletar itens do mapa e reduzir duplicação de código
-void coletar_item_do_mapa(Map *mapa, Player *jogador, Tile current_tile) {
+void coletar_item_do_mapa(Map *mapa, Player *jogador, Tile current_tile, GameStatistics *stats) {
     Item it;
     int found_item = 0;
     
@@ -169,6 +290,8 @@ void coletar_item_do_mapa(Map *mapa, Player *jogador, Tile current_tile) {
     }
     
     if (found_item) {
+        stats_registrar_item_coletado(stats);
+        // Estatísticas serão salvas ao sair do jogo ou salvar
         mapa->grid[jogador->pos_y][jogador->pos_x] = TILE_GRASS; // Deixa grama no lugar
         pause_console();
     }
@@ -178,8 +301,25 @@ int main()
 {
     Map mapa;
     Player jogador;
+    GameConfig config;
+    GameStatistics stats;
     int executando = 1;
+    time_t inicio_sessao = 0;
     srand((unsigned)time(NULL));
+
+    // Carregar ou inicializar configurações
+    if (!config_load(&config, "config.dat")) {
+        // Primeira execução ou arquivo corrompido - usar configurações padrão
+        config_init(&config);
+        config_save(&config, "config.dat");
+    }
+
+    // Carregar ou inicializar estatísticas
+    if (!stats_load(&stats, "stats.dat")) {
+        // Primeira execução ou arquivo corrompido - criar novas estatísticas
+        stats_init(&stats);
+        stats_save(&stats, "stats.dat");
+    }
 
     while (executando)
     {
@@ -192,8 +332,9 @@ int main()
             continue;
         }
 
-        if (op == 1)
+        if (op == 1) // Jogar (Novo Jogo)
         {
+            inicio_sessao = time(NULL);
             criar_personagem_flow(&jogador);
             map_init(&mapa);
             map_place_player(&mapa, &jogador);
@@ -254,7 +395,11 @@ int main()
                 {
                     char fname[128] = "savegame.dat";
                     if (save_game(&jogador, &mapa, fname))
+                    {
+                        stats_registrar_salvamento(&stats);
+                        stats_save(&stats, "stats.dat");
                         printf("Jogo salvo em %s\n", fname);
+                    }
                     else
                         printf("Falha ao salvar\n");
                     pause_console();
@@ -267,6 +412,13 @@ int main()
                 }
                 else if (cmd == 'e')
                 {
+                    // Atualizar tempo jogado antes de sair
+                    if (inicio_sessao > 0) {
+                        time_t fim_sessao = time(NULL);
+                        int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                        stats_atualizar_tempo(&stats, tempo_sessao);
+                        stats_save(&stats, "stats.dat");
+                    }
                     in_game = 0;
                     continue;
                 }
@@ -303,6 +455,8 @@ int main()
 
                             if (res == 1) // Jogador Morreu
                             {
+                                stats_registrar_morte(&stats);
+                                stats_save(&stats, "stats.dat");
                                 printf("Voltando ao menu principal...\n");
                                 in_game = 0;
                                 pause_console();
@@ -310,6 +464,8 @@ int main()
                             }
                             if (res == 0) // Venceu!
                             {
+                                stats_registrar_zumbi_derrotado(&stats);
+                                // Estatísticas serão salvas ao sair do jogo ou salvar
                                 // Remove o 'Z' do mapa após a vitória
                                 mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
 
@@ -326,6 +482,8 @@ int main()
                             }
                             if (res == 2) // Fugiu
                             {
+                                stats_registrar_fuga(&stats);
+                                // Estatísticas serão salvas ao sair do jogo ou salvar
                                 printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
                                 jogador.pos_x = prev_x; // Restaura a posição X anterior
                                 jogador.pos_y = prev_y; // Restaura a posição Y anterior
@@ -337,7 +495,7 @@ int main()
                     {
                         // Checar e coletar diferentes tipos de itens
                         Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
-                        coletar_item_do_mapa(&mapa, &jogador, current_tile);
+                        coletar_item_do_mapa(&mapa, &jogador, current_tile, &stats);
                     }
                 }
                 else
@@ -361,8 +519,9 @@ int main()
                 }
             }
         }
-        else if (op == 2)
+        else if (op == 2) // Carregar Jogo
         {
+            inicio_sessao = time(NULL);
             // carregar jogo
             if (load_game(&jogador, &mapa, "savegame.dat"))
             {
@@ -406,7 +565,11 @@ int main()
                     {
                         char fname[128] = "savegame.dat";
                         if (save_game(&jogador, &mapa, fname))
+                        {
+                            stats_registrar_salvamento(&stats);
+                            stats_save(&stats, "stats.dat");
                             printf("Jogo salvo em %s\n", fname);
+                        }
                         else
                             printf("Falha ao salvar\n");
                         pause_console();
@@ -419,6 +582,13 @@ int main()
                     }
                     else if (cmd == 'e')
                     {
+                        // Atualizar tempo jogado antes de sair
+                        if (inicio_sessao > 0) {
+                            time_t fim_sessao = time(NULL);
+                            int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                            stats_atualizar_tempo(&stats, tempo_sessao);
+                            stats_save(&stats, "stats.dat");
+                        }
                         in_game = 0;
                         continue;
                     }
@@ -453,6 +623,8 @@ int main()
                                 if (res == 1)
                                 {
                                     // Jogador Morreu:
+                                    stats_registrar_morte(&stats);
+                                    stats_save(&stats, "stats.dat");
                                     printf("Voltando ao menu principal...\n");
                                     in_game = 0;
                                     pause_console();
@@ -461,6 +633,8 @@ int main()
                                 if (res == 0)
                                 {
                                     // Jogador Venceu:
+                                    stats_registrar_zumbi_derrotado(&stats);
+                                    // Estatísticas serão salvas ao sair do jogo ou salvar
                                     mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
                                     int r = rand() % 100;
                                     if (r < 40)
@@ -479,6 +653,8 @@ int main()
                                 if (res == 2)
                                 {
                                     // Jogador Fugiu:
+                                    stats_registrar_fuga(&stats);
+                                    // Estatísticas serão salvas ao sair do jogo ou salvar
                                     printf("Você fugiu do encontro e voltou para sua posição anterior.\n");
                                     jogador.pos_x = prev_x;
                                     jogador.pos_y = prev_y;
@@ -490,7 +666,7 @@ int main()
                         {
                             // Checar e coletar diferentes tipos de itens
                             Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
-                            coletar_item_do_mapa(&mapa, &jogador, current_tile);
+                            coletar_item_do_mapa(&mapa, &jogador, current_tile, &stats);
                         }
                     }
                     else
@@ -520,11 +696,28 @@ int main()
                 pause_console();
             }
         }
-        else if (op == 3)
+        else if (op == 3) // Opções
+        {
+            menu_opcoes(&config);
+        }
+        else if (op == 4) // Estatísticas
+        {
+            stats_print(&stats);
+            pause_console();
+        }
+        else if (op == 5) // Sobre
+        {
+            menu_sobre();
+        }
+        else if (op == 6) // Tutorial
         {
             mostrar_tutorial();
         }
-        else if (op == 4)
+        else if (op == 7) // Reset
+        {
+            menu_reset(&stats, &config);
+        }
+        else if (op == 8) // Sair
         {
             executando = 0;
         }

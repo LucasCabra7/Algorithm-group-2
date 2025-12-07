@@ -1,1 +1,7 @@
 /.vscode
+*.dat
+*.exe
+zombie
+obj/
+*.o
+*.backup
