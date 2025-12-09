@@ -2,17 +2,74 @@
 #include "Inventario.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+// Função auxiliar para desenhar barra de HP estilo Pokemon
+void desenhar_barra_hp(int hp_atual, int hp_max, const char* nome) {
+    int largura_barra = 20;
+    int porcentagem = (hp_atual * 100) / hp_max;
+    int blocos_cheios = (hp_atual * largura_barra) / hp_max;
+    
+    printf("╔════════════════════════════════╗\n");
+    printf("║ %-15s Lv.%-2d       ║\n", nome, 1); // TODO: usar nivel real
+    printf("║ HP: [");
+    for (int i = 0; i < largura_barra; i++) {
+        if (i < blocos_cheios) {
+            if (porcentagem > 50) printf("█");
+            else if (porcentagem > 20) printf("▓");
+            else printf("▒");
+        } else {
+            printf("░");
+        }
+    }
+    printf("] %d/%d  ║\n", hp_atual, hp_max);
+    printf("╚════════════════════════════════╝\n");
+}
+
+// Função auxiliar para mostrar menu de ações estilo Pokemon
+void mostrar_menu_combate() {
+    printf("\n╔════════════════════════════════╗\n");
+    printf("║  O que você deseja fazer?      ║\n");
+    printf("╠════════════════════════════════╣\n");
+    printf("║  1) ⚔ ATACAR                   ║\n");
+    printf("║  2) 🎒 ITEM (Usar Medkit)      ║\n");
+    printf("║  3) 🏃 FUGIR                   ║\n");
+    printf("╚════════════════════════════════╝\n");
+    printf("> ");
+}
+
+// Função auxiliar para animação de texto (simulada com delay)
+void texto_combate(const char* msg) {
+    printf("\n┌─────────────────────────────────────────┐\n");
+    printf("│ %-40s│\n", msg);
+    printf("└─────────────────────────────────────────┘\n");
+}
 
 int batalha_turno(Player *jogador, Inimigo *inimigo) {
 
     int hp_inimigo_atual = inimigo->hp;
 
-    printf("\n--- ENCONTRO! Um %s apareceu! ---\n", inimigo->nome);
+    // Apresentação do combate estilo Pokemon
+    printf("\n");
+    printf("╔═══════════════════════════════════════════════════════╗\n");
+    printf("║          ⚠  ENCONTRO COM INIMIGO!  ⚠                 ║\n");
+    printf("╚═══════════════════════════════════════════════════════╝\n");
+    texto_combate("Um %s selvagem apareceu!");
+    printf("  Um %s selvagem apareceu!\n\n", inimigo->nome);
 
     while (jogador->hp > 0 && hp_inimigo_atual > 0) {
         
-        printf("\nSua Vida: %d HP | Vida do %s: %d HP\n", jogador->hp, inimigo->nome, hp_inimigo_atual);
-        printf("Escolha uma acao: 1) Atacar 2) Usar Medkit 3) Fugir\n> ");
+        // Mostrar barras de HP estilo Pokemon
+        printf("\n═══════════════════════════════════════════════════════\n");
+        printf("                    INIMIGO\n");
+        desenhar_barra_hp(hp_inimigo_atual, inimigo->hp, inimigo->nome);
+        
+        printf("\n                    JOGADOR\n");
+        desenhar_barra_hp(jogador->hp, jogador->hp_max, jogador->nome);
+        printf("═══════════════════════════════════════════════════════\n");
+        
+        // Mostrar menu de ações
+        mostrar_menu_combate();
         
         int op = 0;
         if (scanf("%d", &op) != 1) {
@@ -26,13 +83,22 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
                 dano_causado = 1;
             }
             hp_inimigo_atual -= dano_causado;
-            printf("Voce ataca o %s e causa %d de dano!\n", inimigo->nome, dano_causado);
+            
+            char msg[100];
+            sprintf(msg, "%s usou ATAQUE!", jogador->nome);
+            texto_combate(msg);
+            sprintf(msg, "Causou %d de dano em %s!", dano_causado, inimigo->nome);
+            texto_combate(msg);
 
             if (hp_inimigo_atual <= 0) {
-                printf("\n%s derrotado!\n", inimigo->nome);
+                printf("\n");
+                texto_combate("O inimigo foi derrotado!");
+                printf("\n╔═══════════════════════════════════════════════════════╗\n");
+                printf("║                    VITÓRIA!                           ║\n");
+                printf("╚═══════════════════════════════════════════════════════╝\n");
                 jogador->xp += inimigo->xp;
+                printf("  %s ganhou %d pontos de XP!\n", jogador->nome, inimigo->xp);
                 player_check_level_up(jogador);
-                printf("Voce ganhou %d XP!\n", inimigo->xp);
                 inimigo->ativo = 0;
                 return 0; // Código de Vitória
             }
@@ -48,41 +114,56 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
                     jogador->hp = jogador->hp_max;
                 }
                 it->quantidade -= 1;
-                printf("Voce usou um medkit e recuperou %d de HP. HP atual: %d\n", cura, jogador->hp);
+                
+                char msg[100];
+                sprintf(msg, "%s usou MEDKIT!", jogador->nome);
+                texto_combate(msg);
+                sprintf(msg, "Recuperou %d pontos de HP!", cura);
+                texto_combate(msg);
 
                 if (it->quantidade <= 0) {
                     inventory_remove_index(&jogador->inventario, idx);
                 }
             } else {
-                printf("Nenhum medkit no inventario!\n");
+                texto_combate("Nenhum medkit disponivel no inventario!");
                 continue; 
             }
 
         } else if (op == 3) { // --- FUGIR ---
             int chance_de_fuga = rand() % 100;
             if (chance_de_fuga < 50) {
-                printf("Voce fugiu com sucesso!\n");
+                texto_combate("Voce fugiu com sucesso!");
+                printf("\n");
                 return 2; // Código de Fuga
             } else {
-                printf("A fuga falhou! O inimigo ataca!\n");
+                texto_combate("A fuga falhou!");
             }
 
         } else {
-            printf("Opcao invalida. Voce perdeu seu turno!\n");
+            texto_combate("Opcao invalida! Voce perdeu seu turno!");
         }
 
+        // Turno do inimigo
         if (hp_inimigo_atual > 0) {
-            printf("O %s ataca!\n", inimigo->nome);
+            char msg[100];
+            sprintf(msg, "%s preparou um ataque!", inimigo->nome);
+            texto_combate(msg);
+            
             int dano_recebido = (rand() % inimigo->ataque) + 1 - jogador->defesa;
             if (dano_recebido < 1) {
                 dano_recebido = 1;
             }
             jogador->hp -= dano_recebido;
-            printf("Voce recebeu %d de dano!\n", dano_recebido);
+            
+            sprintf(msg, "%s causou %d de dano!", inimigo->nome, dano_recebido);
+            texto_combate(msg);
 
             if (jogador->hp <= 0) {
                 jogador->hp = 0;
-                printf("\nVoce foi derrotado... Fim de jogo.\n");
+                printf("\n╔═══════════════════════════════════════════════════════╗\n");
+                printf("║                    DERROTA...                         ║\n");
+                printf("╚═══════════════════════════════════════════════════════╝\n");
+                texto_combate("Voce foi derrotado...");
                 return 1; // Código de Derrota
             }
         }

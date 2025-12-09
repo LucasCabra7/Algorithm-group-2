@@ -31,6 +31,16 @@ typedef enum {
     ESTADO_TUTORIAL
 } EstadoJogo;
 
+// Estados do menu de combate
+typedef enum {
+    COMBATE_MENU_PRINCIPAL,  // Escolher ação
+    COMBATE_ATACANDO,        // Animação de ataque
+    COMBATE_USANDO_ITEM,     // Usando item
+    COMBATE_TURNO_INIMIGO,   // Inimigo atacando
+    COMBATE_VITORIA,         // Jogador venceu
+    COMBATE_DERROTA          // Jogador perdeu
+} EstadoCombate;
+
 int main(void) {
     // 1. Inicialização da Janela
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Zombie Rampage - Overworld");
@@ -59,8 +69,14 @@ int main(void) {
 
     // 4. Estado inicial
     EstadoJogo estado = ESTADO_MENU_PRINCIPAL;
+    EstadoCombate estadoCombate = COMBATE_MENU_PRINCIPAL;
     int opcaoMenu = 0;
     int opcaoOpcoes = 0;
+    int opcaoCombate = 0; // Opção selecionada no menu de combate
+    Inimigo *inimigoAtual = NULL; // Inimigo sendo enfrentado
+    int hp_inimigo_atual = 0;
+    float tempoCombate = 0.0f; // Timer para animações de combate
+    char mensagemCombate[256] = ""; // Mensagem atual do combate
     
     // 5. Configuração da CÂMARA
     Camera2D camera = { 0 };
@@ -181,7 +197,20 @@ int main(void) {
                     
                     // Lógica de Encontro
                     if (map_check_encounter(&mapa, &jogador)) {
-                        estado = ESTADO_BATALHA;
+                        // Encontrar o inimigo na posição atual
+                        for (int i = 0; i < mapa.num_inimigos; i++) {
+                            if (mapa.inimigos[i].pos_x == jogador.pos_x && 
+                                mapa.inimigos[i].pos_y == jogador.pos_y &&
+                                mapa.inimigos[i].ativo) {
+                                inimigoAtual = &mapa.inimigos[i];
+                                hp_inimigo_atual = inimigoAtual->hp;
+                                estadoCombate = COMBATE_MENU_PRINCIPAL;
+                                opcaoCombate = 0;
+                                strcpy(mensagemCombate, "");
+                                estado = ESTADO_BATALHA;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -198,16 +227,105 @@ int main(void) {
             camera.target.y += (targetPos.y - camera.target.y) * 0.1f;
         }
         else if (estado == ESTADO_BATALHA) {
-            if (IsKeyPressed(KEY_SPACE)) {
-                // Mata o zumbi e registra estatística
-                stats_registrar_zumbi_derrotado(&stats);
-                mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
-                estado = ESTADO_EXPLORANDO;
+            tempoCombate += GetFrameTime();
+            
+            if (estadoCombate == COMBATE_MENU_PRINCIPAL) {
+                // Navegação no menu de combate
+                if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
+                    opcaoCombate = (opcaoCombate + 1) % 3;
+                }
+                if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
+                    opcaoCombate = (opcaoCombate - 1 + 3) % 3;
+                }
+                
+                if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                    if (opcaoCombate == 0) { // ATACAR
+                        int dano = (rand() % jogador.ataque) + 2 - inimigoAtual->defesa;
+                        if (dano < 1) dano = 1;
+                        hp_inimigo_atual -= dano;
+                        sprintf(mensagemCombate, "%s atacou e causou %d de dano!", jogador.nome, dano);
+                        estadoCombate = COMBATE_ATACANDO;
+                        tempoCombate = 0.0f;
+                    } else if (opcaoCombate == 1) { // ITEM
+                        int idx = inventory_find_type(&jogador.inventario, ITEM_MEDKIT);
+                        if (idx >= 0) {
+                            Item *it = &jogador.inventario.itens[idx];
+                            int cura = it->poder;
+                            jogador.hp += cura;
+                            if (jogador.hp > jogador.hp_max) jogador.hp = jogador.hp_max;
+                            it->quantidade--;
+                            if (it->quantidade <= 0) {
+                                inventory_remove_index(&jogador.inventario, idx);
+                            }
+                            sprintf(mensagemCombate, "%s usou Medkit e recuperou %d HP!", jogador.nome, cura);
+                            estadoCombate = COMBATE_USANDO_ITEM;
+                            tempoCombate = 0.0f;
+                        } else {
+                            sprintf(mensagemCombate, "Nenhum Medkit disponivel!");
+                            tempoCombate = 0.0f;
+                        }
+                    } else if (opcaoCombate == 2) { // FUGIR
+                        if ((rand() % 100) < 50) {
+                            stats_registrar_fuga(&stats);
+                            estado = ESTADO_EXPLORANDO;
+                        } else {
+                            sprintf(mensagemCombate, "Nao conseguiu fugir!");
+                            estadoCombate = COMBATE_TURNO_INIMIGO;
+                            tempoCombate = 0.0f;
+                        }
+                    }
+                }
             }
-            if (IsKeyPressed(KEY_F)) {
-                // Fuga
-                stats_registrar_fuga(&stats);
-                estado = ESTADO_EXPLORANDO;
+            else if (estadoCombate == COMBATE_ATACANDO || estadoCombate == COMBATE_USANDO_ITEM) {
+                if (tempoCombate > 1.5f) { // Após 1.5s
+                    if (hp_inimigo_atual <= 0) {
+                        // Vitória!
+                        sprintf(mensagemCombate, "%s foi derrotado! Voce ganhou %d XP!", inimigoAtual->nome, inimigoAtual->xp);
+                        jogador.xp += inimigoAtual->xp;
+                        player_check_level_up(&jogador);
+                        inimigoAtual->ativo = 0;
+                        stats_registrar_zumbi_derrotado(&stats);
+                        estadoCombate = COMBATE_VITORIA;
+                        tempoCombate = 0.0f;
+                    } else {
+                        // Turno do inimigo
+                        estadoCombate = COMBATE_TURNO_INIMIGO;
+                        tempoCombate = 0.0f;
+                    }
+                }
+            }
+            else if (estadoCombate == COMBATE_TURNO_INIMIGO) {
+                if (tempoCombate > 1.0f) { // Inimigo ataca após 1s
+                    int dano = (rand() % inimigoAtual->ataque) + 1 - jogador.defesa;
+                    if (dano < 1) dano = 1;
+                    jogador.hp -= dano;
+                    sprintf(mensagemCombate, "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
+                    tempoCombate = 0.0f;
+                    
+                    if (jogador.hp <= 0) {
+                        jogador.hp = 0;
+                        sprintf(mensagemCombate, "Voce foi derrotado...");
+                        stats_registrar_morte(&stats);
+                        estadoCombate = COMBATE_DERROTA;
+                    } else {
+                        // Aguarda input do jogador
+                        if (tempoCombate > 1.5f) {
+                            estadoCombate = COMBATE_MENU_PRINCIPAL;
+                            strcpy(mensagemCombate, "");
+                        }
+                    }
+                }
+            }
+            else if (estadoCombate == COMBATE_VITORIA) {
+                if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                    mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
+                    estado = ESTADO_EXPLORANDO;
+                }
+            }
+            else if (estadoCombate == COMBATE_DERROTA) {
+                if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                    estado = ESTADO_MENU_PRINCIPAL;
+                }
             }
         }
 
@@ -365,10 +483,116 @@ int main(void) {
             DrawText("ESC - Menu", 10, 100, 15, LIGHTGRAY);
 
             if (estado == ESTADO_BATALHA) {
-                DrawRectangle(100, 200, 600, 200, Fade(BLACK, 0.8f));
-                DrawRectangleLines(100, 200, 600, 200, WHITE);
-                DrawText("COMBATE!", 350, 220, 30, RED);
-                DrawText("ESPACO - Atacar | F - Fugir", 240, 300, 20, WHITE);
+                // ===== INTERFACE DE COMBATE ESTILO POKEMON =====
+                
+                // Fundo semi-transparente
+                DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(BLACK, 0.7f));
+                
+                // === ÁREA SUPERIOR: INIMIGO ===
+                // Caixa de informações do inimigo (canto superior direito)
+                int infoInimigoX = SCREEN_WIDTH - 280;
+                int infoInimigoY = 30;
+                DrawRectangle(infoInimigoX, infoInimigoY, 260, 90, (Color){40, 40, 60, 230});
+                DrawRectangleLines(infoInimigoX, infoInimigoY, 260, 90, WHITE);
+                
+                DrawText(inimigoAtual->nome, infoInimigoX + 10, infoInimigoY + 10, 20, WHITE);
+                DrawText(TextFormat("Lv. %d", 1), infoInimigoX + 200, infoInimigoY + 10, 18, LIGHTGRAY);
+                
+                // Barra de HP do inimigo
+                DrawText("HP:", infoInimigoX + 10, infoInimigoY + 40, 16, WHITE);
+                float hpPercent = (float)hp_inimigo_atual / (float)inimigoAtual->hp;
+                int barWidth = 200;
+                int barHeight = 20;
+                DrawRectangle(infoInimigoX + 50, infoInimigoY + 40, barWidth, barHeight, DARKGRAY);
+                Color hpColor = hpPercent > 0.5f ? GREEN : (hpPercent > 0.2f ? YELLOW : RED);
+                DrawRectangle(infoInimigoX + 50, infoInimigoY + 40, (int)(barWidth * hpPercent), barHeight, hpColor);
+                DrawRectangleLines(infoInimigoX + 50, infoInimigoY + 40, barWidth, barHeight, BLACK);
+                DrawText(TextFormat("%d/%d", hp_inimigo_atual, inimigoAtual->hp), 
+                         infoInimigoX + 70, infoInimigoY + 65, 14, WHITE);
+                
+                // Sprite do inimigo (representado por quadrado maior por enquanto)
+                int spriteInimigoX = SCREEN_WIDTH - 180;
+                int spriteInimigoY = 150;
+                DrawRectangle(spriteInimigoX, spriteInimigoY, 120, 120, COLOR_ZOMBIE);
+                DrawRectangleLines(spriteInimigoX, spriteInimigoY, 120, 120, DARKGRAY);
+                DrawText("Z", spriteInimigoX + 50, spriteInimigoY + 40, 60, WHITE);
+                
+                // === ÁREA INFERIOR ESQUERDA: JOGADOR ===
+                // Caixa de informações do jogador (canto inferior esquerdo)
+                int infoJogadorX = 20;
+                int infoJogadorY = SCREEN_HEIGHT - 180;
+                DrawRectangle(infoJogadorX, infoJogadorY, 280, 110, (Color){40, 40, 60, 230});
+                DrawRectangleLines(infoJogadorX, infoJogadorY, 280, 110, WHITE);
+                
+                DrawText(jogador.nome, infoJogadorX + 10, infoJogadorY + 10, 20, WHITE);
+                DrawText(TextFormat("Lv. %d", jogador.nivel), infoJogadorX + 220, infoJogadorY + 10, 18, YELLOW);
+                
+                // Barra de HP do jogador
+                DrawText("HP:", infoJogadorX + 10, infoJogadorY + 40, 16, WHITE);
+                float jogadorHpPercent = (float)jogador.hp / (float)jogador.hp_max;
+                DrawRectangle(infoJogadorX + 50, infoJogadorY + 40, barWidth, barHeight, DARKGRAY);
+                Color jogadorHpColor = jogadorHpPercent > 0.5f ? GREEN : (jogadorHpPercent > 0.2f ? YELLOW : RED);
+                DrawRectangle(infoJogadorX + 50, infoJogadorY + 40, (int)(barWidth * jogadorHpPercent), barHeight, jogadorHpColor);
+                DrawRectangleLines(infoJogadorX + 50, infoJogadorY + 40, barWidth, barHeight, BLACK);
+                DrawText(TextFormat("%d/%d", jogador.hp, jogador.hp_max), 
+                         infoJogadorX + 70, infoJogadorY + 65, 14, WHITE);
+                
+                // Barra de XP
+                DrawText("XP:", infoJogadorX + 10, infoJogadorY + 80, 14, LIGHTGRAY);
+                float xpPercent = (float)jogador.xp / (float)jogador.xp_proximo_nivel;
+                DrawRectangle(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, DARKGRAY);
+                DrawRectangle(infoJogadorX + 50, infoJogadorY + 80, (int)(barWidth * xpPercent), 10, SKYBLUE);
+                DrawRectangleLines(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, BLACK);
+                
+                // Sprite do jogador (representado por quadrado por enquanto)
+                int spriteJogadorX = 80;
+                int spriteJogadorY = SCREEN_HEIGHT - 350;
+                DrawRectangle(spriteJogadorX, spriteJogadorY, 120, 120, COLOR_PLAYER);
+                DrawRectangleLines(spriteJogadorX, spriteJogadorY, 120, 120, DARKGRAY);
+                DrawText("P", spriteJogadorX + 50, spriteJogadorY + 40, 60, WHITE);
+                
+                // === ÁREA INFERIOR DIREITA: MENU DE AÇÕES ===
+                int menuX = SCREEN_WIDTH - 360;
+                int menuY = SCREEN_HEIGHT - 180;
+                
+                if (estadoCombate == COMBATE_MENU_PRINCIPAL) {
+                    // Menu principal de combate
+                    DrawRectangle(menuX, menuY, 340, 160, (Color){20, 30, 50, 240});
+                    DrawRectangleLines(menuX, menuY, 340, 160, WHITE);
+                    DrawText("O que deseja fazer?", menuX + 20, menuY + 10, 18, WHITE);
+                    
+                    const char* opcoes[] = {"ATACAR", "ITEM (Medkit)", "FUGIR"};
+                    const char* icones[] = {"[>]", "[+]", "[X]"};
+                    
+                    for (int i = 0; i < 3; i++) {
+                        int optY = menuY + 50 + (i * 35);
+                        Color cor = (i == opcaoCombate) ? YELLOW : WHITE;
+                        Color corFundo = (i == opcaoCombate) ? (Color){60, 80, 120, 200} : (Color){30, 40, 60, 150};
+                        
+                        DrawRectangle(menuX + 20, optY - 5, 300, 30, corFundo);
+                        if (i == opcaoCombate) {
+                            DrawRectangleLines(menuX + 20, optY - 5, 300, 30, YELLOW);
+                        }
+                        DrawText(icones[i], menuX + 30, optY, 20, cor);
+                        DrawText(opcoes[i], menuX + 70, optY, 20, cor);
+                    }
+                    
+                    DrawText("Use SETAS/WS e ENTER para escolher", menuX + 30, menuY + 140, 12, LIGHTGRAY);
+                }
+                else if (estadoCombate == COMBATE_VITORIA || estadoCombate == COMBATE_DERROTA ||
+                         estadoCombate == COMBATE_ATACANDO || estadoCombate == COMBATE_USANDO_ITEM ||
+                         estadoCombate == COMBATE_TURNO_INIMIGO) {
+                    // Caixa de mensagem
+                    DrawRectangle(menuX, menuY, 340, 160, (Color){20, 30, 50, 240});
+                    DrawRectangleLines(menuX, menuY, 340, 160, WHITE);
+                    
+                    // Desenhar mensagem com quebra de linha se necessário
+                    DrawText(mensagemCombate, menuX + 20, menuY + 20, 18, WHITE);
+                    
+                    if (estadoCombate == COMBATE_VITORIA || estadoCombate == COMBATE_DERROTA) {
+                        DrawText("Pressione ENTER para continuar", menuX + 40, menuY + 130, 14, YELLOW);
+                    }
+                }
             }
         }
 
