@@ -240,7 +240,8 @@ int main(void) {
                 
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
                     if (opcaoCombate == 0) { // ATACAR
-                        int dano = (rand() % jogador.ataque) + 2 - inimigoAtual->defesa;
+                        int ataque_base = jogador.ataque > 0 ? jogador.ataque : 1;
+                        int dano = (rand() % ataque_base) + 2 - inimigoAtual->defesa;
                         if (dano < 1) dano = 1;
                         hp_inimigo_atual -= dano;
                         sprintf(mensagemCombate, "%s atacou e causou %d de dano!", jogador.nome, dano);
@@ -297,7 +298,8 @@ int main(void) {
             else if (estadoCombate == COMBATE_TURNO_INIMIGO) {
                 if (tempoCombate > 1.0f) { // Inimigo ataca após 1s
                     if (tempoCombate < 1.1f) { // Executar apenas uma vez
-                        int dano = (rand() % inimigoAtual->ataque) + 1 - jogador.defesa;
+                        int ataque_inimigo = inimigoAtual->ataque > 0 ? inimigoAtual->ataque : 1;
+                        int dano = (rand() % ataque_inimigo) + 1 - jogador.defesa;
                         if (dano < 1) dano = 1;
                         jogador.hp -= dano;
                         sprintf(mensagemCombate, "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
@@ -501,7 +503,10 @@ int main(void) {
                 
                 // Barra de HP do inimigo
                 DrawText("HP:", infoInimigoX + 10, infoInimigoY + 40, 16, WHITE);
-                float hpPercent = (float)hp_inimigo_atual / (float)inimigoAtual->hp;
+                int hp_max_safe = inimigoAtual->hp > 0 ? inimigoAtual->hp : 1;
+                float hpPercent = (float)hp_inimigo_atual / (float)hp_max_safe;
+                if (hpPercent < 0.0f) hpPercent = 0.0f;
+                if (hpPercent > 1.0f) hpPercent = 1.0f;
                 int barWidth = 200;
                 int barHeight = 20;
                 DrawRectangle(infoInimigoX + 50, infoInimigoY + 40, barWidth, barHeight, DARKGRAY);
@@ -540,7 +545,10 @@ int main(void) {
                 
                 // Barra de XP
                 DrawText("XP:", infoJogadorX + 10, infoJogadorY + 80, 14, LIGHTGRAY);
-                float xpPercent = (float)jogador.xp / (float)jogador.xp_proximo_nivel;
+                int xp_proximo_safe = jogador.xp_proximo_nivel > 0 ? jogador.xp_proximo_nivel : 1;
+                float xpPercent = (float)jogador.xp / (float)xp_proximo_safe;
+                if (xpPercent < 0.0f) xpPercent = 0.0f;
+                if (xpPercent > 1.0f) xpPercent = 1.0f;
                 DrawRectangle(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, DARKGRAY);
                 DrawRectangle(infoJogadorX + 50, infoJogadorY + 80, (int)(barWidth * xpPercent), 10, SKYBLUE);
                 DrawRectangleLines(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, BLACK);

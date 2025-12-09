@@ -7,6 +7,15 @@
 // Função auxiliar para desenhar barra de HP estilo Pokemon
 void desenhar_barra_hp(int hp_atual, int hp_max, const char* nome, int nivel) {
     int largura_barra = 20;
+    
+    // Proteção contra divisão por zero
+    if (hp_max <= 0) {
+        hp_max = 1;
+    }
+    if (hp_atual < 0) {
+        hp_atual = 0;
+    }
+    
     int porcentagem = (hp_atual * 100) / hp_max;
     int blocos_cheios = (hp_atual * largura_barra) / hp_max;
     
@@ -54,8 +63,9 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
     printf("╔═══════════════════════════════════════════════════════╗\n");
     printf("║          ⚠  ENCONTRO COM INIMIGO!  ⚠                 ║\n");
     printf("╚═══════════════════════════════════════════════════════╝\n");
-    texto_combate("Um %s selvagem apareceu!");
-    printf("  Um %s selvagem apareceu!\n\n", inimigo->nome);
+    char msg_inicial[100];
+    sprintf(msg_inicial, "Um %s selvagem apareceu!", inimigo->nome);
+    texto_combate(msg_inicial);
 
     while (jogador->hp > 0 && hp_inimigo_atual > 0) {
         
