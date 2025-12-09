@@ -296,23 +296,24 @@ int main(void) {
             }
             else if (estadoCombate == COMBATE_TURNO_INIMIGO) {
                 if (tempoCombate > 1.0f) { // Inimigo ataca após 1s
-                    int dano = (rand() % inimigoAtual->ataque) + 1 - jogador.defesa;
-                    if (dano < 1) dano = 1;
-                    jogador.hp -= dano;
-                    sprintf(mensagemCombate, "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
-                    tempoCombate = 0.0f;
-                    
-                    if (jogador.hp <= 0) {
-                        jogador.hp = 0;
-                        sprintf(mensagemCombate, "Voce foi derrotado...");
-                        stats_registrar_morte(&stats);
-                        estadoCombate = COMBATE_DERROTA;
-                    } else {
-                        // Aguarda input do jogador
-                        if (tempoCombate > 1.5f) {
-                            estadoCombate = COMBATE_MENU_PRINCIPAL;
-                            strcpy(mensagemCombate, "");
+                    if (tempoCombate < 1.1f) { // Executar apenas uma vez
+                        int dano = (rand() % inimigoAtual->ataque) + 1 - jogador.defesa;
+                        if (dano < 1) dano = 1;
+                        jogador.hp -= dano;
+                        sprintf(mensagemCombate, "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
+                        
+                        if (jogador.hp <= 0) {
+                            jogador.hp = 0;
+                            sprintf(mensagemCombate, "Voce foi derrotado...");
+                            stats_registrar_morte(&stats);
+                            estadoCombate = COMBATE_DERROTA;
                         }
+                    }
+                    
+                    // Aguarda 1.5s depois do ataque para voltar ao menu
+                    if (tempoCombate > 2.5f && estadoCombate != COMBATE_DERROTA) {
+                        estadoCombate = COMBATE_MENU_PRINCIPAL;
+                        strcpy(mensagemCombate, "");
                     }
                 }
             }

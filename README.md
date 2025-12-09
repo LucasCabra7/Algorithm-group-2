@@ -93,6 +93,32 @@ O sistema é composto pelas seguintes classes:
 - `q` - Salvar jogo
 - `e` - Voltar ao menu principal
 
+**Durante o Combate (Terminal):**
+- `1` - Atacar o inimigo
+- `2` - Usar Medkit (se disponível)
+- `3` - Tentar fugir (50% de chance)
+
+**Durante o Combate (Gráfico):**
+- `Setas ↑/↓` ou `W/S` - Navegar no menu de ações
+- `Enter` ou `Espaço` - Confirmar ação selecionada
+
+### ⚔️ Sistema de Combate
+
+Quando você encontra um zumbi, entra em um modo de combate por turnos estilo Pokemon:
+
+1. **Escolha sua Ação:**
+   - 🗡️ **ATACAR:** Causa dano baseado no seu ataque menos a defesa do inimigo
+   - 💊 **ITEM:** Use um Medkit para recuperar HP durante a batalha
+   - 🏃 **FUGIR:** Tente escapar (50% de chance - se falhar, o inimigo ataca)
+
+2. **Turno do Inimigo:** Após sua ação, o zumbi contra-ataca causando dano baseado no ataque dele menos sua defesa
+
+3. **Vitória:** Derrote o zumbi para ganhar XP e possivelmente itens. Acumule XP para subir de nível!
+
+4. **Derrota:** Se seu HP chegar a zero, o jogo termina e você retorna ao menu principal
+
+> **Dica:** Colete Medkits antes de batalhas difíceis e use-os estrategicamente para sobreviver!
+
 ### 🗺️ Elementos do Mapa
 
 | Símbolo | Descrição | Pode Atravessar? |
@@ -113,6 +139,20 @@ O sistema é composto pelas seguintes classes:
 ---
 
 ## ✨ Novidades da Versão Atual
+
+### Sistema de Combate Estilo Pokemon (NOVO!)
+- **Interface de Combate Aprimorada:** Sistema de batalha completamente reformulado com visual inspirado em Pokemon
+- **Barras de HP Visuais:** Barras coloridas que mudam de cor conforme o HP diminui (verde > amarelo > vermelho)
+- **Menu de Ações Organizado:** Escolha entre Atacar, Usar Item ou Fugir com interface clara
+- **Feedback em Tempo Real:** Mensagens de combate descritivas e animadas
+- **Sistema de Turnos Dinâmico:** Combate fluido com ações do jogador e contraataques do inimigo
+- **Versão Terminal:** ASCII art aprimorado com caixas decorativas e ícones
+- **Versão Gráfica:** Interface completa com:
+  - Painéis de informação para jogador e inimigo
+  - Barras de HP e XP coloridas
+  - Áreas de exibição de sprites
+  - Menu de ações interativo com navegação por setas
+  - Animações de transição entre estados de combate
 
 ### Sistema de Game States e Menu Aprimorado
 - **Menu Principal Completo:** Novo sistema de navegação com 8 opções

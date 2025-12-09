@@ -5,13 +5,13 @@
 #include <string.h>
 
 // Função auxiliar para desenhar barra de HP estilo Pokemon
-void desenhar_barra_hp(int hp_atual, int hp_max, const char* nome) {
+void desenhar_barra_hp(int hp_atual, int hp_max, const char* nome, int nivel) {
     int largura_barra = 20;
     int porcentagem = (hp_atual * 100) / hp_max;
     int blocos_cheios = (hp_atual * largura_barra) / hp_max;
     
     printf("╔════════════════════════════════╗\n");
-    printf("║ %-15s Lv.%-2d       ║\n", nome, 1); // TODO: usar nivel real
+    printf("║ %-15s Lv.%-2d       ║\n", nome, nivel);
     printf("║ HP: [");
     for (int i = 0; i < largura_barra; i++) {
         if (i < blocos_cheios) {
@@ -62,10 +62,10 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
         // Mostrar barras de HP estilo Pokemon
         printf("\n═══════════════════════════════════════════════════════\n");
         printf("                    INIMIGO\n");
-        desenhar_barra_hp(hp_inimigo_atual, inimigo->hp, inimigo->nome);
+        desenhar_barra_hp(hp_inimigo_atual, inimigo->hp, inimigo->nome, 1);
         
         printf("\n                    JOGADOR\n");
-        desenhar_barra_hp(jogador->hp, jogador->hp_max, jogador->nome);
+        desenhar_barra_hp(jogador->hp, jogador->hp_max, jogador->nome, jogador->nivel);
         printf("═══════════════════════════════════════════════════════\n");
         
         // Mostrar menu de ações
