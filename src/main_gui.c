@@ -244,7 +244,7 @@ int main(void) {
                         int dano = (rand() % ataque_base) + 2 - inimigoAtual->defesa;
                         if (dano < 1) dano = 1;
                         hp_inimigo_atual -= dano;
-                        sprintf(mensagemCombate, "%s atacou e causou %d de dano!", jogador.nome, dano);
+                        snprintf(mensagemCombate, sizeof(mensagemCombate), "%s atacou e causou %d de dano!", jogador.nome, dano);
                         estadoCombate = COMBATE_ATACANDO;
                         tempoCombate = 0.0f;
                     } else if (opcaoCombate == 1) { // ITEM
@@ -258,11 +258,11 @@ int main(void) {
                             if (it->quantidade <= 0) {
                                 inventory_remove_index(&jogador.inventario, idx);
                             }
-                            sprintf(mensagemCombate, "%s usou Medkit e recuperou %d HP!", jogador.nome, cura);
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), "%s usou Medkit e recuperou %d HP!", jogador.nome, cura);
                             estadoCombate = COMBATE_USANDO_ITEM;
                             tempoCombate = 0.0f;
                         } else {
-                            sprintf(mensagemCombate, "Nenhum Medkit disponivel!");
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), "Nenhum Medkit disponivel!");
                             tempoCombate = 0.0f;
                         }
                     } else if (opcaoCombate == 2) { // FUGIR
@@ -270,7 +270,7 @@ int main(void) {
                             stats_registrar_fuga(&stats);
                             estado = ESTADO_EXPLORANDO;
                         } else {
-                            sprintf(mensagemCombate, "Nao conseguiu fugir!");
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), "Nao conseguiu fugir!");
                             estadoCombate = COMBATE_TURNO_INIMIGO;
                             tempoCombate = 0.0f;
                         }
@@ -281,7 +281,7 @@ int main(void) {
                 if (tempoCombate > 1.5f) { // Após 1.5s
                     if (hp_inimigo_atual <= 0) {
                         // Vitória!
-                        sprintf(mensagemCombate, "%s foi derrotado! Voce ganhou %d XP!", inimigoAtual->nome, inimigoAtual->xp);
+                        snprintf(mensagemCombate, sizeof(mensagemCombate), "%s foi derrotado! Voce ganhou %d XP!", inimigoAtual->nome, inimigoAtual->xp);
                         jogador.xp += inimigoAtual->xp;
                         player_check_level_up(&jogador);
                         inimigoAtual->ativo = 0;
@@ -302,11 +302,11 @@ int main(void) {
                         int dano = (rand() % ataque_inimigo) + 1 - jogador.defesa;
                         if (dano < 1) dano = 1;
                         jogador.hp -= dano;
-                        sprintf(mensagemCombate, "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
+                        snprintf(mensagemCombate, sizeof(mensagemCombate), "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
                         
                         if (jogador.hp <= 0) {
                             jogador.hp = 0;
-                            sprintf(mensagemCombate, "Voce foi derrotado...");
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), "Voce foi derrotado...");
                             stats_registrar_morte(&stats);
                             estadoCombate = COMBATE_DERROTA;
                         }
@@ -366,13 +366,13 @@ int main(void) {
             DrawText("OPCOES", SCREEN_WIDTH/2 - 60, 80, 40, RED);
             
             char volumeText[50];
-            sprintf(volumeText, "Volume: %d%%", config.volume_musica);
+            snprintf(volumeText, sizeof(volumeText), "Volume: %d%%", config.volume_musica);
             Color cor0 = (opcaoOpcoes == 0) ? YELLOW : WHITE;
             DrawText(volumeText, SCREEN_WIDTH/2 - 100, 200, 20, cor0);
             
             char difText[50];
             const char* dificuldades[] = {"Facil", "Normal", "Dificil"};
-            sprintf(difText, "Dificuldade: %s", dificuldades[config.dificuldade - 1]);
+            snprintf(difText, sizeof(difText), "Dificuldade: %s", dificuldades[config.dificuldade - 1]);
             Color cor1 = (opcaoOpcoes == 1) ? YELLOW : WHITE;
             DrawText(difText, SCREEN_WIDTH/2 - 100, 240, 20, cor1);
             
@@ -386,21 +386,21 @@ int main(void) {
             DrawText("ESTATISTICAS", SCREEN_WIDTH/2 - 120, 80, 40, RED);
             
             char texto[100];
-            sprintf(texto, "Zumbis Derrotados: %d", stats.zumbis_derrotados);
+            snprintf(texto, sizeof(texto), "Zumbis Derrotados: %d", stats.zumbis_derrotados);
             DrawText(texto, 200, 180, 20, WHITE);
             
-            sprintf(texto, "Itens Coletados: %d", stats.itens_coletados);
+            snprintf(texto, sizeof(texto), "Itens Coletados: %d", stats.itens_coletados);
             DrawText(texto, 200, 220, 20, WHITE);
             
-            sprintf(texto, "Mortes: %d", stats.mortes);
+            snprintf(texto, sizeof(texto), "Mortes: %d", stats.mortes);
             DrawText(texto, 200, 260, 20, WHITE);
             
-            sprintf(texto, "Fugas: %d", stats.fugas);
+            snprintf(texto, sizeof(texto), "Fugas: %d", stats.fugas);
             DrawText(texto, 200, 300, 20, WHITE);
             
             int horas = stats.tempo_jogo_segundos / 3600;
             int minutos = (stats.tempo_jogo_segundos % 3600) / 60;
-            sprintf(texto, "Tempo Jogado: %dh %dm", horas, minutos);
+            snprintf(texto, sizeof(texto), "Tempo Jogado: %dh %dm", horas, minutos);
             DrawText(texto, 200, 340, 20, WHITE);
             
             DrawText("Pressione ESC ou ENTER para voltar", 220, 550, 15, LIGHTGRAY);
@@ -502,6 +502,8 @@ int main(void) {
                 DrawText(TextFormat("Lv. %d", 1), infoInimigoX + 200, infoInimigoY + 10, 18, LIGHTGRAY);
                 
                 // Barra de HP do inimigo
+                // Nota: inimigoAtual->hp contém o HP máximo do inimigo
+                // hp_inimigo_atual é o HP atual durante o combate
                 DrawText("HP:", infoInimigoX + 10, infoInimigoY + 40, 16, WHITE);
                 int hp_max_safe = inimigoAtual->hp > 0 ? inimigoAtual->hp : 1;
                 float hpPercent = (float)hp_inimigo_atual / (float)hp_max_safe;

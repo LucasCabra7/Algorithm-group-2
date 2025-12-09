@@ -50,7 +50,7 @@ void mostrar_menu_combate() {
 // Função auxiliar para animação de texto (simulada com delay)
 void texto_combate(const char* msg) {
     printf("\n┌─────────────────────────────────────────┐\n");
-    printf("│ %-40s│\n", msg);
+    printf("│ %-39.39s │\n", msg);  // Limit to 39 chars to prevent overflow
     printf("└─────────────────────────────────────────┘\n");
 }
 
@@ -64,7 +64,7 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
     printf("║          ⚠  ENCONTRO COM INIMIGO!  ⚠                 ║\n");
     printf("╚═══════════════════════════════════════════════════════╝\n");
     char msg_inicial[100];
-    sprintf(msg_inicial, "Um %s selvagem apareceu!", inimigo->nome);
+    snprintf(msg_inicial, sizeof(msg_inicial), "Um %s selvagem apareceu!", inimigo->nome);
     texto_combate(msg_inicial);
 
     while (jogador->hp > 0 && hp_inimigo_atual > 0) {
@@ -95,9 +95,9 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
             hp_inimigo_atual -= dano_causado;
             
             char msg[100];
-            sprintf(msg, "%s usou ATAQUE!", jogador->nome);
+            snprintf(msg, sizeof(msg), "%s usou ATAQUE!", jogador->nome);
             texto_combate(msg);
-            sprintf(msg, "Causou %d de dano em %s!", dano_causado, inimigo->nome);
+            snprintf(msg, sizeof(msg), "Causou %d de dano em %s!", dano_causado, inimigo->nome);
             texto_combate(msg);
 
             if (hp_inimigo_atual <= 0) {
@@ -126,9 +126,9 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
                 it->quantidade -= 1;
                 
                 char msg[100];
-                sprintf(msg, "%s usou MEDKIT!", jogador->nome);
+                snprintf(msg, sizeof(msg), "%s usou MEDKIT!", jogador->nome);
                 texto_combate(msg);
-                sprintf(msg, "Recuperou %d pontos de HP!", cura);
+                snprintf(msg, sizeof(msg), "Recuperou %d pontos de HP!", cura);
                 texto_combate(msg);
 
                 if (it->quantidade <= 0) {
@@ -156,7 +156,7 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
         // Turno do inimigo
         if (hp_inimigo_atual > 0) {
             char msg[100];
-            sprintf(msg, "%s preparou um ataque!", inimigo->nome);
+            snprintf(msg, sizeof(msg), "%s preparou um ataque!", inimigo->nome);
             texto_combate(msg);
             
             int dano_recebido = (rand() % inimigo->ataque) + 1 - jogador->defesa;
@@ -165,7 +165,7 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
             }
             jogador->hp -= dano_recebido;
             
-            sprintf(msg, "%s causou %d de dano!", inimigo->nome, dano_recebido);
+            snprintf(msg, sizeof(msg), "%s causou %d de dano!", inimigo->nome, dano_recebido);
             texto_combate(msg);
 
             if (jogador->hp <= 0) {
