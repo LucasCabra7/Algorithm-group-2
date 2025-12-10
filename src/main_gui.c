@@ -216,10 +216,26 @@ int main(void) {
                 // Tenta mover usando tua lógica de Mapa.c
                 if (map_move_player(&mapa, &jogador, dx, dy)) {
                     
-                    // Checar itens coletados
+                    // Checar itens coletados e adicionar ao inventário
                     Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
-                    if (current_tile == TILE_MEDKIT || current_tile == TILE_WEAPON || 
-                        current_tile == TILE_AMMO || current_tile == TILE_ITEM) {
+                    if (current_tile == TILE_MEDKIT) {
+                        Item medkit = {ITEM_MEDKIT, "Medkit", 30, 1};
+                        inventory_add(&jogador.inventario, medkit);
+                        stats_registrar_item_coletado(&stats);
+                        mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                    } else if (current_tile == TILE_AMMO) {
+                        Item ammo = {ITEM_MUNI, "Municao", 0, 10};
+                        inventory_add(&jogador.inventario, ammo);
+                        stats_registrar_item_coletado(&stats);
+                        mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                    } else if (current_tile == TILE_WEAPON) {
+                        Item pistol = {ITEM_PISTOLA, "Pistola", 15, 1};
+                        inventory_add(&jogador.inventario, pistol);
+                        stats_registrar_item_coletado(&stats);
+                        mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
+                    } else if (current_tile == TILE_ITEM) {
+                        Item generic = {ITEM_MEDKIT, "Item", 10, 1};
+                        inventory_add(&jogador.inventario, generic);
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     }
@@ -627,11 +643,12 @@ int main(void) {
                          infoInimigoX + 70, infoInimigoY + 65, 14, WHITE);
                 
                 // Sprite do inimigo - usar bust image real
-                int spriteInimigoX = SCREEN_WIDTH - 180;
-                int spriteInimigoY = 140;
+                int spriteInimigoX = SCREEN_WIDTH - 150;
+                int spriteInimigoY = 160;
                 // Desenhar zombie bust (escalar menor para caber na tela)
                 if (zombieBust.id > 0) {
-                    DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 1.5f, WHITE);
+                    // Reduced scale to 1.2x to fit better
+                    DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 1.2f, WHITE);
                 } else {
                     // Fallback: desenhar retângulo se texture não carregou
                     DrawRectangle(spriteInimigoX, spriteInimigoY, 80, 100, COLOR_ZOMBIE);
@@ -670,7 +687,7 @@ int main(void) {
                 
                 // Sprite do jogador - usar bust image real baseado na classe
                 int spriteJogadorX = 20;
-                int spriteJogadorY = SCREEN_HEIGHT - 320;
+                int spriteJogadorY = SCREEN_HEIGHT - 250; // Adjusted to fit better
                 // Escolher bust baseado na classe do jogador
                 Texture2D playerBust = soldadBust; // Default
                 if (jogador.Classe == MEDICO) {
@@ -680,7 +697,8 @@ int main(void) {
                 }
                 
                 if (playerBust.id > 0) {
-                    DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 2.0f, WHITE);
+                    // Reduced scale to 1.5x to fit on screen better
+                    DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 1.5f, WHITE);
                 } else {
                     // Fallback: desenhar retângulo se texture não carregou
                     DrawRectangle(spriteJogadorX, spriteJogadorY, 80, 100, COLOR_PLAYER);
