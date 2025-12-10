@@ -84,6 +84,26 @@ int main(void) {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+    // 6. Carregar Texturas/Sprites
+    Texture2D soldadBust = LoadTexture("src/assets/Soldad_Bust.png");
+    Texture2D medicBust = LoadTexture("src/assets/Medic_Bust.png");
+    Texture2D engenheironus = LoadTexture("src/assets/Engenheir_Bust.png");
+    Texture2D zombieBust = LoadTexture("src/assets/zumbi_vest_bust.png");
+    
+    // Sprite sheets para overworld
+    Texture2D soldadSheet = LoadTexture("src/assets/Soldad_Sprite_Sheet.png");
+    Texture2D medicSheet = LoadTexture("src/assets/Medic_Sprite_Sheet.png");
+    Texture2D engenheirSheet = LoadTexture("src/assets/Engenheir_Sprite_Sheet.png");
+    
+    // Itens colecionáveis
+    Texture2D healthArmor = LoadTexture("src/assets/recursos_coletaveis/health-armor 32px.png");
+    Texture2D ammoPistol = LoadTexture("src/assets/recursos_coletaveis/ammo-pistol 32px.png");
+    
+    // Variáveis de animação de sprites
+    int frameAtual = 0;
+    float tempoFrame = 0.0f;
+    float velocidadeFrame = 0.15f; // Segundos por frame
+
     // --- GAME LOOP ---
     while (!WindowShouldClose()) {
         
@@ -453,7 +473,7 @@ int main(void) {
                         int posX = x * TILE_SIZE;
                         int posY = y * TILE_SIZE;
                         
-                        // Aqui no futuro entra a lógica: "Se tiver sprite, desenha sprite. Senão, desenha quadrado"
+                        // Desenhar tiles com sprites quando disponíveis
                         switch (mapa.grid[y][x]) {
                             case TILE_WALL:
                                 DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COLOR_WALL);
@@ -462,8 +482,18 @@ int main(void) {
                                 break;
                             case TILE_ZOMBIE:
                                 DrawRectangle(posX + 10, posY + 10, TILE_SIZE - 20, TILE_SIZE - 20, COLOR_ZOMBIE);
+                                DrawText("Z", posX + 15, posY + 10, 20, WHITE);
+                                break;
+                            case TILE_MEDKIT:
+                                // Desenhar sprite de medkit
+                                DrawTextureEx(healthArmor, (Vector2){posX + 8, posY + 8}, 0.0f, 1.0f, WHITE);
+                                break;
+                            case TILE_AMMO:
+                                // Desenhar sprite de munição
+                                DrawTextureEx(ammoPistol, (Vector2){posX + 8, posY + 8}, 0.0f, 1.0f, WHITE);
                                 break;
                             case TILE_ITEM:
+                            case TILE_WEAPON:
                                 DrawRectangle(posX + 15, posY + 15, TILE_SIZE - 30, TILE_SIZE - 30, COLOR_ITEM);
                                 break;
                         }
@@ -518,12 +548,11 @@ int main(void) {
                 DrawText(TextFormat("%d/%d", hp_inimigo_atual, inimigoAtual->hp), 
                          infoInimigoX + 70, infoInimigoY + 65, 14, WHITE);
                 
-                // Sprite do inimigo (representado por quadrado maior por enquanto)
-                int spriteInimigoX = SCREEN_WIDTH - 180;
-                int spriteInimigoY = 150;
-                DrawRectangle(spriteInimigoX, spriteInimigoY, 120, 120, COLOR_ZOMBIE);
-                DrawRectangleLines(spriteInimigoX, spriteInimigoY, 120, 120, DARKGRAY);
-                DrawText("Z", spriteInimigoX + 50, spriteInimigoY + 40, 60, WHITE);
+                // Sprite do inimigo - usar bust image real
+                int spriteInimigoX = SCREEN_WIDTH - 220;
+                int spriteInimigoY = 120;
+                // Desenhar zombie bust (escalar se necessário)
+                DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 2.0f, WHITE);
                 
                 // === ÁREA INFERIOR ESQUERDA: JOGADOR ===
                 // Caixa de informações do jogador (canto inferior esquerdo)
@@ -555,12 +584,17 @@ int main(void) {
                 DrawRectangle(infoJogadorX + 50, infoJogadorY + 80, (int)(barWidth * xpPercent), 10, SKYBLUE);
                 DrawRectangleLines(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, BLACK);
                 
-                // Sprite do jogador (representado por quadrado por enquanto)
-                int spriteJogadorX = 80;
-                int spriteJogadorY = SCREEN_HEIGHT - 350;
-                DrawRectangle(spriteJogadorX, spriteJogadorY, 120, 120, COLOR_PLAYER);
-                DrawRectangleLines(spriteJogadorX, spriteJogadorY, 120, 120, DARKGRAY);
-                DrawText("P", spriteJogadorX + 50, spriteJogadorY + 40, 60, WHITE);
+                // Sprite do jogador - usar bust image real baseado na classe
+                int spriteJogadorX = 50;
+                int spriteJogadorY = SCREEN_HEIGHT - 380;
+                // Escolher bust baseado na classe do jogador
+                Texture2D playerBust = soldadBust; // Default
+                if (jogador.Classe == MEDICO) {
+                    playerBust = medicBust;
+                } else if (jogador.Classe == ENGENHEIRO) {
+                    playerBust = engenheironus;
+                }
+                DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 2.5f, WHITE);
                 
                 // === ÁREA INFERIOR DIREITA: MENU DE AÇÕES ===
                 int menuX = SCREEN_WIDTH - 360;
@@ -609,6 +643,17 @@ int main(void) {
 
         EndDrawing();
     }
+
+    // Unload textures
+    UnloadTexture(soldadBust);
+    UnloadTexture(medicBust);
+    UnloadTexture(engenheironus);
+    UnloadTexture(zombieBust);
+    UnloadTexture(soldadSheet);
+    UnloadTexture(medicSheet);
+    UnloadTexture(engenheirSheet);
+    UnloadTexture(healthArmor);
+    UnloadTexture(ammoPistol);
 
     CloseWindow();
     return 0;
