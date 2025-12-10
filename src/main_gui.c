@@ -505,10 +505,10 @@ int main(void) {
             DrawText(TextFormat("Defesa: %d", jogador.defesa), 50, y_offset + 90, 20, WHITE);
             
             DrawText("Itens:", 50, y_offset + 140, 25, YELLOW);
-            if (jogador.inventario.tamanho == 0) {
+            if (jogador.inventario.size == 0) {
                 DrawText("Inventario vazio", 70, y_offset + 180, 18, LIGHTGRAY);
             } else {
-                for (int i = 0; i < jogador.inventario.tamanho && i < 10; i++) {
+                for (size_t i = 0; i < jogador.inventario.size && i < 10; i++) {
                     Item *it = &jogador.inventario.itens[i];
                     DrawText(TextFormat("%s x%d (Poder: %d)", it->nome, it->quantidade, it->poder), 
                              70, y_offset + 180 + i * 25, 18, WHITE);
