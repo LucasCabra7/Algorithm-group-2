@@ -25,6 +25,9 @@ typedef enum {
     ESTADO_CRIANDO_PERSONAGEM,
     ESTADO_EXPLORANDO, 
     ESTADO_BATALHA,
+    ESTADO_INVENTARIO,       // NEW: Inventory screen
+    ESTADO_PAUSA,            // NEW: Pause menu
+    ESTADO_GAME_OVER,        // NEW: Game over screen
     ESTADO_OPCOES,
     ESTADO_ESTATISTICAS,
     ESTADO_SOBRE,
@@ -184,15 +187,14 @@ int main(void) {
             }
         }
         else if (estado == ESTADO_EXPLORANDO) {
-            // Voltar ao menu
+            // Pause menu with ESC
             if (IsKeyPressed(KEY_ESCAPE)) {
-                if (inicio_sessao > 0) {
-                    time_t fim_sessao = time(NULL);
-                    int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
-                    stats_atualizar_tempo(&stats, tempo_sessao);
-                    stats_save(&stats, "stats.dat");
-                }
-                estado = ESTADO_MENU_PRINCIPAL;
+                estado = ESTADO_PAUSA;
+            }
+            
+            // Inventory with I
+            if (IsKeyPressed(KEY_I)) {
+                estado = ESTADO_INVENTARIO;
             }
             
             int dx = 0, dy = 0;
@@ -347,8 +349,33 @@ int main(void) {
             }
             else if (estadoCombate == COMBATE_DERROTA) {
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                    estado = ESTADO_MENU_PRINCIPAL;
+                    estado = ESTADO_GAME_OVER;
                 }
+            }
+        }
+        else if (estado == ESTADO_PAUSA) {
+            if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER)) {
+                estado = ESTADO_EXPLORANDO;
+            }
+            if (IsKeyPressed(KEY_Q)) {
+                // Save and quit
+                if (inicio_sessao > 0) {
+                    time_t fim_sessao = time(NULL);
+                    int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                    stats_atualizar_tempo(&stats, tempo_sessao);
+                    stats_save(&stats, "stats.dat");
+                }
+                estado = ESTADO_MENU_PRINCIPAL;
+            }
+        }
+        else if (estado == ESTADO_INVENTARIO) {
+            if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_I)) {
+                estado = ESTADO_EXPLORANDO;
+            }
+        }
+        else if (estado == ESTADO_GAME_OVER) {
+            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                estado = ESTADO_MENU_PRINCIPAL;
             }
         }
 
@@ -454,6 +481,50 @@ int main(void) {
             
             DrawText("Pressione ESC ou ENTER para voltar", 220, 550, 15, LIGHTGRAY);
         }
+        else if (estado == ESTADO_PAUSA) {
+            // Pause menu overlay
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Fade(BLACK, 0.7f));
+            DrawRectangle(200, 150, 400, 300, (Color){40, 40, 60, 230});
+            DrawRectangleLines(200, 150, 400, 300, WHITE);
+            
+            DrawText("JOGO PAUSADO", 310, 180, 30, YELLOW);
+            DrawText("ESC/ENTER - Continuar", 270, 250, 20, WHITE);
+            DrawText("Q - Salvar e Sair para Menu", 230, 290, 20, WHITE);
+            DrawText("Os controles:", 280, 350, 18, LIGHTGRAY);
+            DrawText("I - Inventario", 300, 380, 16, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_INVENTARIO) {
+            // Inventory screen
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            DrawText("INVENTARIO", SCREEN_WIDTH/2 - 100, 50, 35, YELLOW);
+            
+            int y_offset = 120;
+            DrawText(TextFormat("HP: %d/%d", jogador.hp, jogador.hp_max), 50, y_offset, 20, GREEN);
+            DrawText(TextFormat("Nivel: %d", jogador.nivel), 50, y_offset + 30, 20, WHITE);
+            DrawText(TextFormat("Ataque: %d", jogador.ataque), 50, y_offset + 60, 20, WHITE);
+            DrawText(TextFormat("Defesa: %d", jogador.defesa), 50, y_offset + 90, 20, WHITE);
+            
+            DrawText("Itens:", 50, y_offset + 140, 25, YELLOW);
+            if (jogador.inventario.tamanho == 0) {
+                DrawText("Inventario vazio", 70, y_offset + 180, 18, LIGHTGRAY);
+            } else {
+                for (int i = 0; i < jogador.inventario.tamanho && i < 10; i++) {
+                    Item *it = &jogador.inventario.itens[i];
+                    DrawText(TextFormat("%s x%d (Poder: %d)", it->nome, it->quantidade, it->poder), 
+                             70, y_offset + 180 + i * 25, 18, WHITE);
+                }
+            }
+            
+            DrawText("Pressione ESC ou I para voltar", 250, 550, 15, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_GAME_OVER) {
+            // Game over screen
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 20, 30, 255});
+            DrawText("GAME OVER", SCREEN_WIDTH/2 - 150, 200, 50, RED);
+            DrawText(TextFormat("Voce sobreviveu ate o nivel %d", jogador.nivel), 
+                     SCREEN_WIDTH/2 - 200, 300, 20, WHITE);
+            DrawText("Pressione ENTER para voltar ao menu", 220, 400, 18, LIGHTGRAY);
+        }
         else if (estado == ESTADO_EXPLORANDO || estado == ESTADO_BATALHA) {
 
             // INICIO DO MODO 2D (Tudo aqui dentro move-se com a câmara)
@@ -549,10 +620,10 @@ int main(void) {
                          infoInimigoX + 70, infoInimigoY + 65, 14, WHITE);
                 
                 // Sprite do inimigo - usar bust image real
-                int spriteInimigoX = SCREEN_WIDTH - 220;
-                int spriteInimigoY = 120;
-                // Desenhar zombie bust (escalar se necessário)
-                DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 2.0f, WHITE);
+                int spriteInimigoX = SCREEN_WIDTH - 180;
+                int spriteInimigoY = 140;
+                // Desenhar zombie bust (escalar menor para caber na tela)
+                DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 1.5f, WHITE);
                 
                 // === ÁREA INFERIOR ESQUERDA: JOGADOR ===
                 // Caixa de informações do jogador (canto inferior esquerdo)
@@ -585,8 +656,8 @@ int main(void) {
                 DrawRectangleLines(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, BLACK);
                 
                 // Sprite do jogador - usar bust image real baseado na classe
-                int spriteJogadorX = 50;
-                int spriteJogadorY = SCREEN_HEIGHT - 380;
+                int spriteJogadorX = 20;
+                int spriteJogadorY = SCREEN_HEIGHT - 320;
                 // Escolher bust baseado na classe do jogador
                 Texture2D playerBust = soldadBust; // Default
                 if (jogador.Classe == MEDICO) {
@@ -594,7 +665,7 @@ int main(void) {
                 } else if (jogador.Classe == ENGENHEIRO) {
                     playerBust = engenheironus;
                 }
-                DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 2.5f, WHITE);
+                DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 2.0f, WHITE);
                 
                 // === ÁREA INFERIOR DIREITA: MENU DE AÇÕES ===
                 int menuX = SCREEN_WIDTH - 360;
