@@ -1,0 +1,402 @@
+{
+  "version": 2,
+  "bodyType": "muscular",
+  "selections": {
+    "body": {
+      "itemId": "body",
+      "variant": "dark_green",
+      "name": "Body color (dark_green)"
+    },
+    "head": {
+      "itemId": "heads_zombie",
+      "variant": "dark_green",
+      "name": "Zombie (dark_green)"
+    },
+    "expression": {
+      "itemId": "face_neutral",
+      "variant": "dark_green",
+      "name": "Neutral (dark_green)"
+    },
+    "wound_brain": {
+      "itemId": "wound_brain",
+      "variant": "brain",
+      "name": "Brain (brain)"
+    },
+    "wound_ribs": {
+      "itemId": "wound_ribs",
+      "variant": "ribs",
+      "name": "Ribs (ribs)"
+    },
+    "wound_mouth": {
+      "itemId": "wound_mouth",
+      "variant": "mouth",
+      "name": "Mouth (mouth)"
+    },
+    "bandages": {
+      "itemId": "torso_bandages",
+      "variant": "white",
+      "name": "Bandages (white)"
+    },
+    "eye_color": {
+      "itemId": "eye_color",
+      "variant": "purple",
+      "name": "Eye Color (purple)"
+    },
+    "wound_arm": {
+      "itemId": "wound_arm",
+      "variant": "arm",
+      "name": "Arm (arm)"
+    },
+    "shadow": {
+      "itemId": "shadow",
+      "variant": "shadow",
+      "name": "Shadow (shadow)"
+    }
+  },
+  "selectedAnimation": "walk",
+  "showTransparencyGrid": true,
+  "applyTransparencyMask": false,
+  "matchBodyColorEnabled": true,
+  "compactDisplay": false,
+  "enabledLicenses": {
+    "CC0": true,
+    "CC-BY-SA": true,
+    "CC-BY": true,
+    "OGA-BY": true,
+    "GPL": true
+  },
+  "enabledAnimations": {
+    "spellcast": false,
+    "thrust": false,
+    "walk": false,
+    "slash": false,
+    "shoot": false,
+    "hurt": false,
+    "climb": false,
+    "idle": false,
+    "jump": false,
+    "sit": false,
+    "emote": false,
+    "run": false,
+    "watering": false,
+    "combat": false,
+    "1h_slash": false,
+    "1h_backslash": false,
+    "1h_halfslash": false
+  },
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=muscular&body=Body_color_dark_green&head=Zombie_dark_green&expression=Neutral_dark_green&wound_brain=Brain_brain&wound_ribs=Ribs_ribs&wound_mouth=Mouth_mouth&bandages=Bandages_white&eye_color=Eye_Color_purple&wound_arm=Arm_arm&shadow=Shadow_shadow",
+  "layers": [
+    {
+      "itemId": "shadow",
+      "variant": "shadow",
+      "zPos": 0,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "shadow/adult/spellcast/shadow.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt"
+      ]
+    },
+    {
+      "itemId": "body",
+      "variant": "dark_green",
+      "zPos": 10,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "body/bodies/muscular/spellcast/dark_green.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "wound_ribs",
+      "variant": "ribs",
+      "zPos": 15,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "body/wound/spellcast/ribs.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt"
+      ]
+    },
+    {
+      "itemId": "wound_arm",
+      "variant": "arm",
+      "zPos": 15,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "body/wound/spellcast/arm.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt"
+      ]
+    },
+    {
+      "itemId": "heads_zombie",
+      "variant": "dark_green",
+      "zPos": 100,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "head/heads/zombie/adult/spellcast/dark_green.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "face_neutral",
+      "variant": "dark_green",
+      "zPos": 101,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "head/faces/undefined/neutral/spellcast/dark_green.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "eye_color",
+      "variant": "purple",
+      "zPos": 105,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "eyes/human/undefined/neutral/spellcast/purple.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "wound_brain",
+      "variant": "brain",
+      "zPos": 115,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "body/wound/spellcast/brain.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "wound_mouth",
+      "variant": "mouth",
+      "zPos": 115,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "fileName": "body/wound/spellcast/mouth.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    }
+  ],
+  "credits": [
+    {
+      "fileName": "body/bodies/muscular/walk/dark_green.png",
+      "file": "body/bodies/muscular",
+      "notes": "see details at https://opengameart.org/content/lpc-character-bases",
+      "authors": [
+        "bluecarrot16",
+        "JaidynReiman",
+        "Evert",
+        "TheraHedwig",
+        "MuffinElZangano",
+        "Durrani",
+        "Sander Frenken (castelonia)",
+        "Benjamin K. Smith (BenCreating)",
+        "Eliza Wyatt (ElizaWy)",
+        "dalonedrau",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+        "https://opengameart.org/content/lpc-barbarian-sprite-base",
+        "https://opengameart.org/content/lpc-muscular-swing-animation",
+        "https://opengameart.org/content/lpc-muscular-hurt-animation",
+        "https://opengameart.org/content/lpc-jump-expanded",
+        "https://opengameart.org/content/lpc-revised-character-basics",
+        "https://opengameart.org/content/lpc-be-seated",
+        "https://opengameart.org/content/lpc-jump-expanded",
+        "https://opengameart.org/content/lpc-character-bases",
+        "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani"
+      ]
+    },
+    {
+      "fileName": "head/heads/zombie/adult/walk/dark_green.png",
+      "file": "head/heads/zombie",
+      "notes": "",
+      "authors": [
+        "bluecarrot16",
+        "Benjamin K. Smith (BenCreating)",
+        "Sander Frenken (castelonia)",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+        "https://opengameart.org/content/lpc-zombie",
+        "https://opengameart.org/content/lpc-character-bases"
+      ]
+    },
+    {
+      "fileName": "head/faces/undefined/neutral/walk/dark_green.png",
+      "file": "head/faces",
+      "notes": "Original by Redshrike, Expressions by ElizaWy, mapped to all frames by JaidynReiman",
+      "authors": [
+        "JaidynReiman",
+        "ElizaWy",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "OGA-BY 3.0"
+      ],
+      "urls": [
+        "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+        "https://opengameart.org/content/ulpc-expanded-expressions"
+      ]
+    },
+    {
+      "fileName": "eyes/human/undefined/neutral/walk/purple.png",
+      "file": "eyes/human",
+      "notes": "original by Redshrike, mapped to all frames by Matthew Krohn & JaidynReiman",
+      "authors": [
+        "JaidynReiman",
+        "Matthew Krohn (makrohn)",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "OGA-BY 3.0",
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles"
+      ]
+    },
+    {
+      "fileName": "shadow/adult/walk/shadow.png",
+      "file": "shadow",
+      "notes": "",
+      "authors": [
+        "drjamgo@hotmail.com"
+      ],
+      "licenses": [
+        "CC0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/shadow-for-lpc-sprite"
+      ]
+    }
+  ]
+}

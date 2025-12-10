@@ -1,0 +1,220 @@
+{
+  "exportTimestamp": "2025-12-09T21-11-53",
+  "bodyType": "muscular",
+  "standardAnimations": {
+    "exported": {
+      "spellcast": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "thrust": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "walk": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "slash": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "shoot": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "hurt": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "climb": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "idle": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "jump": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "sit": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "emote": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "run": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "watering": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "combat": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "1h_slash": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "1h_backslash": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ],
+      "1h_halfslash": [
+        "010 body_color__dark_green_.png",
+        "100 zombie__dark_green_.png",
+        "101 neutral__dark_green_.png",
+        "115 brain__brain_.png",
+        "015 ribs__ribs_.png",
+        "115 mouth__mouth_.png",
+        "105 eye_color__purple_.png",
+        "015 arm__arm_.png",
+        "100 shadow__shadow_.png"
+      ]
+    },
+    "failed": {
+      "spellcast": [],
+      "thrust": [],
+      "walk": [],
+      "slash": [],
+      "shoot": [],
+      "hurt": [],
+      "climb": [],
+      "idle": [],
+      "jump": [],
+      "sit": [],
+      "emote": [],
+      "run": [],
+      "watering": [],
+      "combat": [],
+      "1h_slash": [],
+      "1h_backslash": [],
+      "1h_halfslash": []
+    }
+  },
+  "customAnimations": {
+    "exported": {},
+    "failed": {}
+  },
+  "frameSize": 64,
+  "frameCounts": {}
+}
