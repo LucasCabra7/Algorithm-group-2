@@ -48,6 +48,7 @@ int main(void) {
     // 1. Inicialização da Janela
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Zombie Rampage - Overworld");
     SetTargetFPS(60);
+    SetExitKey(KEY_NULL); // Disable ESC as exit key - we handle it manually
 
     // 2. Carregar configurações e estatísticas
     GameConfig config;
@@ -92,6 +93,12 @@ int main(void) {
     Texture2D medicBust = LoadTexture("src/assets/Medic_Bust.png");
     Texture2D engenheironus = LoadTexture("src/assets/Engenheir_Bust.png");
     Texture2D zombieBust = LoadTexture("src/assets/zumbi_vest_bust.png");
+    
+    // Validar se as texturas carregaram
+    if (soldadBust.id == 0) TraceLog(LOG_WARNING, "Failed to load Soldad_Bust.png");
+    if (medicBust.id == 0) TraceLog(LOG_WARNING, "Failed to load Medic_Bust.png");
+    if (engenheironus.id == 0) TraceLog(LOG_WARNING, "Failed to load Engenheir_Bust.png");
+    if (zombieBust.id == 0) TraceLog(LOG_WARNING, "Failed to load zumbi_vest_bust.png");
     
     // Sprite sheets para overworld
     Texture2D soldadSheet = LoadTexture("src/assets/Soldad_Sprite_Sheet.png");
@@ -623,7 +630,13 @@ int main(void) {
                 int spriteInimigoX = SCREEN_WIDTH - 180;
                 int spriteInimigoY = 140;
                 // Desenhar zombie bust (escalar menor para caber na tela)
-                DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 1.5f, WHITE);
+                if (zombieBust.id > 0) {
+                    DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 1.5f, WHITE);
+                } else {
+                    // Fallback: desenhar retângulo se texture não carregou
+                    DrawRectangle(spriteInimigoX, spriteInimigoY, 80, 100, COLOR_ZOMBIE);
+                    DrawText("Z", spriteInimigoX + 30, spriteInimigoY + 30, 40, WHITE);
+                }
                 
                 // === ÁREA INFERIOR ESQUERDA: JOGADOR ===
                 // Caixa de informações do jogador (canto inferior esquerdo)
@@ -665,7 +678,14 @@ int main(void) {
                 } else if (jogador.Classe == ENGENHEIRO) {
                     playerBust = engenheironus;
                 }
-                DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 2.0f, WHITE);
+                
+                if (playerBust.id > 0) {
+                    DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 2.0f, WHITE);
+                } else {
+                    // Fallback: desenhar retângulo se texture não carregou
+                    DrawRectangle(spriteJogadorX, spriteJogadorY, 80, 100, COLOR_PLAYER);
+                    DrawText("P", spriteJogadorX + 30, spriteJogadorY + 30, 40, WHITE);
+                }
                 
                 // === ÁREA INFERIOR DIREITA: MENU DE AÇÕES ===
                 int menuX = SCREEN_WIDTH - 360;
