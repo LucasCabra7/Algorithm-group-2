@@ -89,12 +89,19 @@ int main(void) {
     camera.zoom = 1.0f;
 
     // 6. Carregar Texturas/Sprites
+    // Battle images - new combat sprites
+    Texture2D soldadoBatalha = LoadTexture("src/assets/Soldado_Batalha.png");
+    Texture2D zumbiBatalha = LoadTexture("src/assets/Zumbi_Batalha.png");
+    
+    // Original bust images (keeping for reference, but using battle images in combat)
     Texture2D soldadBust = LoadTexture("src/assets/Soldad_Bust.png");
     Texture2D medicBust = LoadTexture("src/assets/Medic_Bust.png");
     Texture2D engenheironus = LoadTexture("src/assets/Engenheir_Bust.png");
     Texture2D zombieBust = LoadTexture("src/assets/zumbi_vest_bust.png");
     
-    // Validar se as texturas carregaram
+    // Validar se as texturas de batalha carregaram
+    if (soldadoBatalha.id == 0) TraceLog(LOG_WARNING, "Failed to load Soldado_Batalha.png");
+    if (zumbiBatalha.id == 0) TraceLog(LOG_WARNING, "Failed to load Zumbi_Batalha.png");
     if (soldadBust.id == 0) TraceLog(LOG_WARNING, "Failed to load Soldad_Bust.png");
     if (medicBust.id == 0) TraceLog(LOG_WARNING, "Failed to load Medic_Bust.png");
     if (engenheironus.id == 0) TraceLog(LOG_WARNING, "Failed to load Engenheir_Bust.png");
@@ -642,13 +649,14 @@ int main(void) {
                 DrawText(TextFormat("%d/%d", hp_inimigo_atual, inimigoAtual->hp), 
                          infoInimigoX + 70, infoInimigoY + 65, 14, WHITE);
                 
-                // Sprite do inimigo - usar bust image real
-                int spriteInimigoX = SCREEN_WIDTH - 150;
-                int spriteInimigoY = 160;
-                // Desenhar zombie bust (escalar menor para caber na tela)
-                if (zombieBust.id > 0) {
-                    // Reduced scale to 1.2x to fit better
-                    DrawTextureEx(zombieBust, (Vector2){spriteInimigoX, spriteInimigoY}, 0.0f, 1.2f, WHITE);
+                // Sprite do inimigo - usar nova imagem de batalha
+                // Posição: centro-superior-direito
+                int spriteInimigoX = SCREEN_WIDTH - 200; // Right side with margin
+                int spriteInimigoY = 150; // Upper-center area
+                
+                if (zumbiBatalha.id > 0) {
+                    // Draw new battle sprite
+                    DrawTexture(zumbiBatalha, spriteInimigoX, spriteInimigoY, WHITE);
                 } else {
                     // Fallback: desenhar retângulo se texture não carregou
                     DrawRectangle(spriteInimigoX, spriteInimigoY, 80, 100, COLOR_ZOMBIE);
@@ -685,20 +693,14 @@ int main(void) {
                 DrawRectangle(infoJogadorX + 50, infoJogadorY + 80, (int)(barWidth * xpPercent), 10, SKYBLUE);
                 DrawRectangleLines(infoJogadorX + 50, infoJogadorY + 80, barWidth, 10, BLACK);
                 
-                // Sprite do jogador - usar bust image real baseado na classe
-                int spriteJogadorX = 20;
-                int spriteJogadorY = SCREEN_HEIGHT - 250; // Adjusted to fit better
-                // Escolher bust baseado na classe do jogador
-                Texture2D playerBust = soldadBust; // Default
-                if (jogador.Classe == MEDICO) {
-                    playerBust = medicBust;
-                } else if (jogador.Classe == ENGENHEIRO) {
-                    playerBust = engenheironus;
-                }
+                // Sprite do jogador - usar nova imagem de batalha
+                // Posição: centro-inferior-esquerdo
+                int spriteJogadorX = 50; // Left side with margin
+                int spriteJogadorY = SCREEN_HEIGHT - 280; // Lower-center area, above info panel
                 
-                if (playerBust.id > 0) {
-                    // Reduced scale to 1.5x to fit on screen better
-                    DrawTextureEx(playerBust, (Vector2){spriteJogadorX, spriteJogadorY}, 0.0f, 1.5f, WHITE);
+                if (soldadoBatalha.id > 0) {
+                    // Draw new battle sprite
+                    DrawTexture(soldadoBatalha, spriteJogadorX, spriteJogadorY, WHITE);
                 } else {
                     // Fallback: desenhar retângulo se texture não carregou
                     DrawRectangle(spriteJogadorX, spriteJogadorY, 80, 100, COLOR_PLAYER);
@@ -754,6 +756,8 @@ int main(void) {
     }
 
     // Unload textures
+    UnloadTexture(soldadoBatalha);
+    UnloadTexture(zumbiBatalha);
     UnloadTexture(soldadBust);
     UnloadTexture(medicBust);
     UnloadTexture(engenheironus);
