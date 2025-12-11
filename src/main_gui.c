@@ -238,11 +238,16 @@ int main(void) {
                     } else if (current_tile == TILE_WEAPON) {
                         Item pistol = {ITEM_PISTOLA, "Pistola", 15, 1};
                         inventory_add(&jogador.inventario, pistol);
+                        // Auto-equip weapon
+                        jogador.equipped_weapon_idx = inventory_find_type(&jogador.inventario, ITEM_PISTOLA);
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     } else if (current_tile == TILE_ITEM) {
-                        Item generic = {ITEM_MEDKIT, "Item", 10, 1};
-                        inventory_add(&jogador.inventario, generic);
+                        // Generic item - could be armor
+                        Item armor = {ITEM_ARMOR, "Colete", 50, 1};
+                        inventory_add(&jogador.inventario, armor);
+                        // Auto-equip armor (add 50 durability)
+                        jogador.armor_durability += 50;
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     }
@@ -293,10 +298,38 @@ int main(void) {
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
                     if (opcaoCombate == 0) { // ATACAR
                         int ataque_base = jogador.ataque > 0 ? jogador.ataque : 1;
-                        int dano = (rand() % ataque_base) + 2 - inimigoAtual->defesa;
+                        
+                        // Add weapon damage bonus if equipped
+                        int weapon_bonus = 0;
+                        if (jogador.equipped_weapon_idx >= 0 && 
+                            jogador.equipped_weapon_idx < (int)jogador.inventario.size) {
+                            // Check if we have ammo
+                            int ammo_idx = inventory_find_type(&jogador.inventario, ITEM_MUNI);
+                            if (ammo_idx >= 0 && jogador.inventario.itens[ammo_idx].quantidade > 0) {
+                                // Use ammo and add weapon damage
+                                weapon_bonus = jogador.inventario.itens[jogador.equipped_weapon_idx].poder;
+                                jogador.inventario.itens[ammo_idx].quantidade--;
+                                if (jogador.inventario.itens[ammo_idx].quantidade <= 0) {
+                                    inventory_remove_index(&jogador.inventario, ammo_idx);
+                                    // Update weapon index if ammo was before it
+                                    if (ammo_idx < jogador.equipped_weapon_idx) {
+                                        jogador.equipped_weapon_idx--;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        int dano = (rand() % (ataque_base + weapon_bonus)) + 2 - inimigoAtual->defesa;
                         if (dano < 1) dano = 1;
                         hp_inimigo_atual -= dano;
-                        snprintf(mensagemCombate, sizeof(mensagemCombate), "%s atacou e causou %d de dano!", jogador.nome, dano);
+                        
+                        if (weapon_bonus > 0) {
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), 
+                                    "%s disparou e causou %d de dano!", jogador.nome, dano);
+                        } else {
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), 
+                                    "%s atacou e causou %d de dano!", jogador.nome, dano);
+                        }
                         estadoCombate = COMBATE_ATACANDO;
                         tempoCombate = 0.0f;
                     } else if (opcaoCombate == 1) { // ITEM
@@ -353,8 +386,35 @@ int main(void) {
                         int ataque_inimigo = inimigoAtual->ataque > 0 ? inimigoAtual->ataque : 1;
                         int dano = (rand() % ataque_inimigo) + 1 - jogador.defesa;
                         if (dano < 1) dano = 1;
-                        jogador.hp -= dano;
-                        snprintf(mensagemCombate, sizeof(mensagemCombate), "%s atacou e causou %d de dano!", inimigoAtual->nome, dano);
+                        
+                        // Apply armor damage reduction if active
+                        int dano_real = dano;
+                        if (jogador.armor_durability > 0) {
+                            dano_real = dano / 2;  // 50% damage reduction
+                            if (dano_real < 1) dano_real = 1;
+                            jogador.armor_durability -= dano_real;
+                            
+                            if (jogador.armor_durability <= 0) {
+                                jogador.armor_durability = 0;
+                                // Remove armor from inventory
+                                int armor_idx = inventory_find_type(&jogador.inventario, ITEM_ARMOR);
+                                if (armor_idx >= 0) {
+                                    inventory_remove_index(&jogador.inventario, armor_idx);
+                                }
+                                snprintf(mensagemCombate, sizeof(mensagemCombate), 
+                                        "%s atacou! Colete absorveu %d dano mas foi destruido!", 
+                                        inimigoAtual->nome, dano - dano_real);
+                            } else {
+                                snprintf(mensagemCombate, sizeof(mensagemCombate), 
+                                        "%s atacou! Colete absorveu parte do dano (%d)!", 
+                                        inimigoAtual->nome, dano_real);
+                            }
+                        } else {
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), 
+                                    "%s atacou e causou %d de dano!", inimigoAtual->nome, dano_real);
+                        }
+                        
+                        jogador.hp -= dano_real;
                         
                         if (jogador.hp <= 0) {
                             jogador.hp = 0;
@@ -534,14 +594,34 @@ int main(void) {
             DrawText(TextFormat("Ataque: %d", jogador.ataque), 50, y_offset + 60, 20, WHITE);
             DrawText(TextFormat("Defesa: %d", jogador.defesa), 50, y_offset + 90, 20, WHITE);
             
-            DrawText("Itens:", 50, y_offset + 140, 25, YELLOW);
+            // Equipment status
+            if (jogador.equipped_weapon_idx >= 0) {
+                DrawText("Arma: Pistola (Equipada)", 50, y_offset + 120, 18, YELLOW);
+            } else {
+                DrawText("Arma: Nenhuma", 50, y_offset + 120, 18, GRAY);
+            }
+            
+            if (jogador.armor_durability > 0) {
+                DrawText(TextFormat("Colete: %d durabilidade", jogador.armor_durability), 
+                         50, y_offset + 145, 18, SKYBLUE);
+            } else {
+                DrawText("Colete: Nenhum", 50, y_offset + 145, 18, GRAY);
+            }
+            
+            DrawText("Itens:", 50, y_offset + 185, 25, YELLOW);
             if (jogador.inventario.size == 0) {
-                DrawText("Inventario vazio", 70, y_offset + 180, 18, LIGHTGRAY);
+                DrawText("Inventario vazio", 70, y_offset + 225, 18, LIGHTGRAY);
             } else {
                 for (size_t i = 0; i < jogador.inventario.size && i < 10; i++) {
                     Item *it = &jogador.inventario.itens[i];
-                    DrawText(TextFormat("%s x%d (Poder: %d)", it->nome, it->quantidade, it->poder), 
-                             70, y_offset + 180 + i * 25, 18, WHITE);
+                    const char* tipo_str = "";
+                    if (it->tipo == ITEM_MEDKIT) tipo_str = "[MEDKIT]";
+                    else if (it->tipo == ITEM_PISTOLA) tipo_str = "[ARMA]";
+                    else if (it->tipo == ITEM_MUNI) tipo_str = "[MUNI]";
+                    else if (it->tipo == ITEM_ARMOR) tipo_str = "[COLETE]";
+                    
+                    DrawText(TextFormat("%s %s x%d (Poder: %d)", tipo_str, it->nome, it->quantidade, it->poder), 
+                             70, y_offset + 225 + i * 25, 18, WHITE);
                 }
             }
             
@@ -617,31 +697,22 @@ int main(void) {
                     }
                 }
 
-                // 3. Desenhar Jogador usando sprite sheet
-                // Escolher sprite sheet baseado na classe
-                Texture2D playerSheet = soldadSheet; // Default
-                if (jogador.Classe == MEDICO) {
-                    playerSheet = medicSheet;
-                } else if (jogador.Classe == ENGENHEIRO) {
-                    playerSheet = engenheirSheet;
-                }
+                // 3. Desenhar Jogador usando sprite de batalha (Soldado_Batalha)
+                // Usar a mesma sprite da batalha para consistência visual
                 
-                // Assumindo sprite sheet 32x32 com 4 linhas (direções) e múltiplas colunas (frames)
-                // Linha 0: Baixo, Linha 1: Esquerda, Linha 2: Direita, Linha 3: Cima
-                int spriteSize = 32;
-                int frameX = 0; // Frame parado (use frameAtual para animação)
-                int frameY = 0; // Direção (pode ser atualizado baseado na última tecla pressionada)
-                
-                Rectangle sourceRec = {frameX * spriteSize, frameY * spriteSize, spriteSize, spriteSize};
-                Rectangle destRec = {
-                    jogador.pos_x * TILE_SIZE + (TILE_SIZE - spriteSize) / 2,
-                    jogador.pos_y * TILE_SIZE + (TILE_SIZE - spriteSize) / 2,
-                    spriteSize,
-                    spriteSize
-                };
-                
-                if (playerSheet.id > 0) {
-                    DrawTexturePro(playerSheet, sourceRec, destRec, (Vector2){0, 0}, 0.0f, WHITE);
+                if (soldadoBatalha.id > 0) {
+                    // Calcular escala para caber no tile
+                    float scaleX = (float)TILE_SIZE / (float)soldadoBatalha.width;
+                    float scaleY = (float)TILE_SIZE / (float)soldadoBatalha.height;
+                    float scale = (scaleX < scaleY) ? scaleX : scaleY; // Usar menor escala
+                    
+                    // Calcular posição centralizada
+                    float spriteWidth = soldadoBatalha.width * scale;
+                    float spriteHeight = soldadoBatalha.height * scale;
+                    float posX = jogador.pos_x * TILE_SIZE + (TILE_SIZE - spriteWidth) / 2;
+                    float posY = jogador.pos_y * TILE_SIZE + (TILE_SIZE - spriteHeight) / 2;
+                    
+                    DrawTextureEx(soldadoBatalha, (Vector2){posX, posY}, 0.0f, scale, WHITE);
                 } else {
                     // Fallback se sprite não carregou
                     DrawRectangle(jogador.pos_x * TILE_SIZE + 8, 
@@ -656,7 +727,22 @@ int main(void) {
             DrawText("Zombie Rampage - Alpha", 10, 10, 20, WHITE);
             DrawText(TextFormat("HP: %d", jogador.hp), 10, 40, 20, GREEN);
             DrawText(TextFormat("Pos: %d, %d", jogador.pos_x, jogador.pos_y), 10, 70, 10, LIGHTGRAY);
-            DrawText("ESC - Menu", 10, 100, 15, LIGHTGRAY);
+            
+            // Equipment status in HUD
+            int hud_y = 90;
+            if (jogador.equipped_weapon_idx >= 0) {
+                int ammo_idx = inventory_find_type(&jogador.inventario, ITEM_MUNI);
+                int ammo_count = (ammo_idx >= 0) ? jogador.inventario.itens[ammo_idx].quantidade : 0;
+                DrawText(TextFormat("Arma: Pistola (%d balas)", ammo_count), 10, hud_y, 14, YELLOW);
+                hud_y += 20;
+            }
+            if (jogador.armor_durability > 0) {
+                Color armor_color = (jogador.armor_durability > 25) ? SKYBLUE : ORANGE;
+                DrawText(TextFormat("Colete: %d", jogador.armor_durability), 10, hud_y, 14, armor_color);
+                hud_y += 20;
+            }
+            
+            DrawText("ESC - Menu | I - Inventario", 10, hud_y + 5, 13, LIGHTGRAY);
 
             if (estado == ESTADO_BATALHA) {
                 // ===== INTERFACE DE COMBATE ESTILO POKEMON =====

@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-typedef enum {ITEM_MEDKIT = 0, ITEM_PISTOLA = 1, ITEM_MUNI = 2 } ItemType;
+typedef enum {ITEM_MEDKIT = 0, ITEM_PISTOLA = 1, ITEM_MUNI = 2, ITEM_ARMOR = 3 } ItemType;
 
 typedef struct 
 {

@@ -51,6 +51,8 @@ Player player_creat(const char *nome, Classe classe){
         p.defesa = 10;
     }
     inventory_init(&p.inventario);
+    p.equipped_weapon_idx = -1;  // No weapon equipped
+    p.armor_durability = 0;       // No armor
     return p;
 }
 
