@@ -68,8 +68,6 @@ int main(void) {
     // 3. Variáveis do Jogo
     Map mapa;
     Player jogador;
-    Inventory inventario;
-    int jogoInicializado = 0;
 
     // 4. Estado inicial
     EstadoJogo estado = ESTADO_MENU_PRINCIPAL;
@@ -116,10 +114,7 @@ int main(void) {
     Texture2D healthArmor = LoadTexture("src/assets/recursos_coletaveis/health-armor 32px.png");
     Texture2D ammoPistol = LoadTexture("src/assets/recursos_coletaveis/ammo-pistol 32px.png");
     
-    // Variáveis de animação de sprites
-    int frameAtual = 0;
-    float tempoFrame = 0.0f;
-    float velocidadeFrame = 0.15f; // Segundos por frame
+    // Variáveis de animação de sprites (placeholder for futuro uso)
 
     // --- GAME LOOP ---
     while (!WindowShouldClose()) {
@@ -141,7 +136,6 @@ int main(void) {
                         jogador.pos_y = MAP_H / 2;
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                         camera.target = (Vector2){ jogador.pos_x * TILE_SIZE, jogador.pos_y * TILE_SIZE };
-                        jogoInicializado = 1;
                         estado = ESTADO_EXPLORANDO;
                         break;
                     case 1: // Carregar Jogo
@@ -226,12 +220,12 @@ int main(void) {
                     // Checar itens coletados e adicionar ao inventário
                     Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
                     if (current_tile == TILE_MEDKIT) {
-                        Item medkit = {ITEM_MEDKIT, "Medkit", 30, 1};
+                        Item medkit = {ITEM_MEDKIT, "Medkit", 30, 1, 0};
                         inventory_add(&jogador.inventario, medkit);
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     } else if (current_tile == TILE_AMMO) {
-                        Item ammo = {ITEM_MUNI, "Municao", 0, 10};
+                        Item ammo = {ITEM_MUNI, "Municao", 0, 10, 0};
                         inventory_add(&jogador.inventario, ammo);
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
@@ -322,6 +316,10 @@ int main(void) {
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     }
+                    
+                    // NOVO: Atualizar posicao dos zumbis usando BFS
+                    // Cada zumbi tenta se mover um passo em direcao ao jogador
+                    mapa_atualizar_inimigos_com_bfs(&mapa, &jogador);
                     
                     // Lógica de Encontro
                     if (map_check_encounter(&mapa, &jogador)) {
@@ -723,12 +721,12 @@ int main(void) {
                     else if (it->tipo == ITEM_MUNI) tipo_str = "[MUNI]";
                     else if (it->tipo == ITEM_ARMOR) {
                         tipo_str = "[COLETE]";
-                        if (i == jogador.equipped_armor_idx) equip_str = " (EQUIPADO)";
+                        if ((int)i == jogador.equipped_armor_idx) equip_str = " (EQUIPADO)";
                     }
                     else if (it->tipo >= ITEM_REVOLVER && it->tipo <= ITEM_ESPADA) {
                         if (it->is_melee) tipo_str = "[ARMA CC]"; // Corpo a corpo
                         else tipo_str = "[ARMA]";
-                        if (i == jogador.equipped_weapon_idx) equip_str = " (EQUIPADA)";
+                        if ((int)i == jogador.equipped_weapon_idx) equip_str = " (EQUIPADA)";
                     }
                     
                     DrawText(TextFormat("%s %s x%d (Poder: %d)%s", tipo_str, it->nome, it->quantidade, it->poder, equip_str), 

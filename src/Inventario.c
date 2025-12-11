@@ -45,9 +45,9 @@ int inventory_remove_index(Inventory *inv, size_t idx){
 };
 
 void inventory_list(const Inventory *inv){
-    printf("\n--- INVENTARIO (%zu itens) ---\n", inv->size);
+    printf("\n--- INVENTARIO (%lu itens) ---\n", (unsigned long)inv->size);
     for(size_t i = 0; i < inv->size; i++){
-        printf("%zu) %s x%d (poder %d)\n", i+1, inv->itens[i].nome, inv->itens[i].quantidade, inv->itens[i].poder);
+        printf("%lu) %s x%d (poder %d)\n", (unsigned long)(i+1), inv->itens[i].nome, inv->itens[i].quantidade, inv->itens[i].poder);
     }
 };
 

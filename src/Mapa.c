@@ -138,6 +138,11 @@ void map_init(Map *mapa) {
 
         mapa->grid[y][x] = TILE_AMMO;
     }
+
+    // NOVO: Constrói grafo para BFS/DFS
+    // Isso converte o grid 2D em uma estrutura de grafo
+    // facilitando algoritmos de busca e IA de zumbis
+    mapa_construir_grafo(mapa);
 }
 
 void map_print(const Map *m, const Player *p){
@@ -276,5 +281,158 @@ const char* map_get_tile_name(Tile tile) {
         case TILE_BUILDING: return "um predio";
         case TILE_ZOMBIE: return "um zumbi";
         default: return "obstaculo";
+    }
+}
+
+/*
+ * ===== INTEGRAÇÃO DE GRAFO E BFS PARA IA DE ZUMBIS =====
+ * 
+ * Objetivo: Implementar IA inteligente para zumbis usarem BFS
+ * para encontrar o caminho mais curto até o jogador
+ * 
+ * Complexidade: O(V + E) por atualização (uma por turno)
+ * V = número de tiles caminháveis ≈ 200-300
+ * E ≈ 4V (cada tile conecta a no máximo 4 vizinhos)
+ */
+
+/*
+ * Converte o grid 2D do mapa em um grafo com lista de adjacência
+ * Cada tile caminável é um vértice
+ * Arestas conectam tiles adjacentes não-bloqueados
+ */
+void mapa_construir_grafo(Map *mapa) {
+    // Cria grafo vazio
+    mapa->grafo_mapa = grafo_criar();
+    
+    // Mapeia coordenadas (x,y) para ID de vértice
+    // ID = y * MAP_W + x (converte 2D em 1D)
+    
+    // Primeiro: adiciona todos os tiles caminháveis como vértices
+    for (int y = 0; y < MAP_H; y++) {
+        for (int x = 0; x < MAP_W; x++) {
+            int id_vertice = y * MAP_W + x;
+            
+            // Armazena coordenadas originais no vértice
+            mapa->grafo_mapa.vertices[id_vertice].x = x;
+            mapa->grafo_mapa.vertices[id_vertice].y = y;
+            
+            // Incrementa número de vértices
+            if (id_vertice >= mapa->grafo_mapa.numero_vertices) {
+                mapa->grafo_mapa.numero_vertices = id_vertice + 1;
+            }
+        }
+    }
+    
+    // Segundo: cria arestas entre tiles adjacentes caminháveis
+    for (int y = 0; y < MAP_H; y++) {
+        for (int x = 0; x < MAP_W; x++) {
+            int tile_atual = mapa->grid[y][x];
+            
+            // Salta tiles bloqueados (não cria arestas para eles)
+            if (tile_atual == TILE_WALL || 
+                tile_atual == TILE_TREE || 
+                tile_atual == TILE_WATER ||
+                tile_atual == TILE_BUILDING) {
+                continue;
+            }
+            
+            int id_atual = y * MAP_W + x;
+            
+            // Tenta conectar aos 4 vizinhos (cima, baixo, esq, dir)
+            // CIMA: (x, y-1)
+            if (y > 0) {
+                int tile_cima = mapa->grid[y-1][x];
+                if (tile_cima != TILE_WALL && tile_cima != TILE_TREE && 
+                    tile_cima != TILE_WATER && tile_cima != TILE_BUILDING) {
+                    int id_cima = (y-1) * MAP_W + x;
+                    grafo_adicionar_aresta(&mapa->grafo_mapa, id_atual, id_cima);
+                }
+            }
+            
+            // BAIXO: (x, y+1)
+            if (y < MAP_H - 1) {
+                int tile_baixo = mapa->grid[y+1][x];
+                if (tile_baixo != TILE_WALL && tile_baixo != TILE_TREE && 
+                    tile_baixo != TILE_WATER && tile_baixo != TILE_BUILDING) {
+                    int id_baixo = (y+1) * MAP_W + x;
+                    grafo_adicionar_aresta(&mapa->grafo_mapa, id_atual, id_baixo);
+                }
+            }
+            
+            // ESQUERDA: (x-1, y)
+            if (x > 0) {
+                int tile_esq = mapa->grid[y][x-1];
+                if (tile_esq != TILE_WALL && tile_esq != TILE_TREE && 
+                    tile_esq != TILE_WATER && tile_esq != TILE_BUILDING) {
+                    int id_esq = y * MAP_W + (x-1);
+                    grafo_adicionar_aresta(&mapa->grafo_mapa, id_atual, id_esq);
+                }
+            }
+            
+            // DIREITA: (x+1, y)
+            if (x < MAP_W - 1) {
+                int tile_dir = mapa->grid[y][x+1];
+                if (tile_dir != TILE_WALL && tile_dir != TILE_TREE && 
+                    tile_dir != TILE_WATER && tile_dir != TILE_BUILDING) {
+                    int id_dir = y * MAP_W + (x+1);
+                    grafo_adicionar_aresta(&mapa->grafo_mapa, id_atual, id_dir);
+                }
+            }
+        }
+    }
+}
+
+/*
+ * Função auxiliar para converter ID de vértice em coordenadas (x,y)
+ */
+void mapa_id_para_xy(int id, int *x, int *y) {
+    *y = id / MAP_W;
+    *x = id % MAP_W;
+}
+
+/*
+ * Atualiza posição de todos os zumbis usando BFS
+ * Cada zumbi tenta se mover um passo em direção ao jogador
+ * 
+ * Algoritmo:
+ *   1. Executa BFS do jogador como origem
+ *   2. Para cada zumbi:
+ *      - Olha vizinhos e escolhe vizinho com menor distância até jogador
+ *      - Move zumbi nessa direção
+ */
+void mapa_atualizar_inimigos_com_bfs(Map *mapa, const Player *jogador) {
+    // Converte posição do jogador para ID de vértice
+    int id_jogador = jogador->pos_y * MAP_W + jogador->pos_x;
+    
+    // Executa BFS a partir da posição do jogador
+    // Resultado: distância de cada tile até jogador
+    EstadoBusca resultado_bfs = grafo_bfs(&mapa->grafo_mapa, id_jogador);
+    
+    // Para cada zumbi ativo
+    for (int i = 0; i < mapa->num_inimigos; i++) {
+        if (!mapa->inimigos[i].ativo) continue;
+        
+        int id_zumbi_atual = mapa->inimigos[i].pos_y * MAP_W + mapa->inimigos[i].pos_x;
+        int distancia_minima = 9999;
+        int id_proxima_posicao = id_zumbi_atual;
+        
+        // Procura vizinho com menor distância até jogador
+        for (int j = 0; j < mapa->grafo_mapa.vertices[id_zumbi_atual].numero_vizinhos; j++) {
+            int id_vizinho = mapa->grafo_mapa.vertices[id_zumbi_atual].vizinhos[j];
+            int distancia_vizinho = resultado_bfs.distancia[id_vizinho];
+            
+            // Se este vizinho é mais próximo do jogador, marca como próximo movimento
+            if (distancia_vizinho < distancia_minima) {
+                distancia_minima = distancia_vizinho;
+                id_proxima_posicao = id_vizinho;
+            }
+        }
+        
+        // Converte ID em coordenadas e move zumbi
+        int nova_x, nova_y;
+        mapa_id_para_xy(id_proxima_posicao, &nova_x, &nova_y);
+        
+        mapa->inimigos[i].pos_x = nova_x;
+        mapa->inimigos[i].pos_y = nova_y;
     }
 }

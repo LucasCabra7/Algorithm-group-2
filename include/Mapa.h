@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "Personagem.h"
 #include "Inimigo.h"
+#include "Grafo.h"
 
 #define MAP_W 25
 #define MAP_H 20
@@ -25,7 +26,8 @@ typedef enum {
 typedef struct {
     int grid[MAP_H][MAP_W];
     Inimigo inimigos[MAX_INIMIGOS];
-    int num_inimigos;              
+    int num_inimigos;
+    Grafo grafo_mapa;                 // NOVO: Grafo do mapa para BFS/DFS
 } Map;
 
 void map_init(Map *m);
@@ -34,6 +36,10 @@ int map_move_player(Map *m, Player *p, int dx, int dy);
 int map_check_encounter(Map *m, const Player *p); // retorna 1 se encontro zumbi
 void map_place_player(Map *m, Player *p);
 const char* map_get_tile_name(Tile tile); // Retorna o nome do tile
+
+// NOVO: Funções para integração de Grafo e IA de zumbis
+void mapa_construir_grafo(Map *mapa);         // Cria grafo a partir do grid
+void mapa_atualizar_inimigos_com_bfs(Map *mapa, const Player *jogador);  // Move zumbis via BFS
 
 
 #endif

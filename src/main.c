@@ -431,6 +431,10 @@ int main()
 
                 if (moved)
                 {
+                    // NOVO: Atualizar posicao dos zumbis usando BFS
+                    // Cada zumbi tenta se mover um passo em direcao ao jogador
+                    mapa_atualizar_inimigos_com_bfs(&mapa, &jogador);
+                    
                     if (map_check_encounter(&mapa, &jogador))
                     {
                         // Encontra qual inimigo está na posição do jogador

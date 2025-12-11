@@ -3,5 +3,6 @@
 *.exe
 zombie
 obj/
+bin/
 *.o
 *.backup
