@@ -582,8 +582,24 @@ int main(void) {
                                 DrawRectangle(posX, posY + TILE_SIZE - 5, TILE_SIZE, 5, BLACK); 
                                 break;
                             case TILE_ZOMBIE:
-                                DrawRectangle(posX + 10, posY + 10, TILE_SIZE - 20, TILE_SIZE - 20, COLOR_ZOMBIE);
-                                DrawText("Z", posX + 15, posY + 10, 20, WHITE);
+                                // Usar sprite de batalha escalado para o overworld
+                                if (zumbiBatalha.id > 0) {
+                                    // Escalar sprite de batalha para caber no tile (48x48)
+                                    float scale = (float)TILE_SIZE / (float)zumbiBatalha.width;
+                                    if (scale > 1.0f) scale = 1.0f; // Não aumentar, só diminuir
+                                    Rectangle sourceRec = {0, 0, (float)zumbiBatalha.width, (float)zumbiBatalha.height};
+                                    Rectangle destRec = {
+                                        posX + (TILE_SIZE - zumbiBatalha.width * scale) / 2,
+                                        posY + (TILE_SIZE - zumbiBatalha.height * scale) / 2,
+                                        zumbiBatalha.width * scale,
+                                        zumbiBatalha.height * scale
+                                    };
+                                    DrawTexturePro(zumbiBatalha, sourceRec, destRec, (Vector2){0, 0}, 0.0f, WHITE);
+                                } else {
+                                    // Fallback se sprite não carregou
+                                    DrawRectangle(posX + 10, posY + 10, TILE_SIZE - 20, TILE_SIZE - 20, COLOR_ZOMBIE);
+                                    DrawText("Z", posX + 15, posY + 10, 20, WHITE);
+                                }
                                 break;
                             case TILE_MEDKIT:
                                 // Desenhar sprite de medkit
@@ -601,11 +617,37 @@ int main(void) {
                     }
                 }
 
-                // 3. Desenhar Jogador
-                // Desenhamos um pouco menor que o tile para parecer que ele está "dentro" do mundo
-                DrawRectangle(jogador.pos_x * TILE_SIZE + 8, 
-                              jogador.pos_y * TILE_SIZE + 8, 
-                              TILE_SIZE - 16, TILE_SIZE - 16, COLOR_PLAYER);
+                // 3. Desenhar Jogador usando sprite sheet
+                // Escolher sprite sheet baseado na classe
+                Texture2D playerSheet = soldadSheet; // Default
+                if (jogador.Classe == MEDICO) {
+                    playerSheet = medicSheet;
+                } else if (jogador.Classe == ENGENHEIRO) {
+                    playerSheet = engenheirSheet;
+                }
+                
+                // Assumindo sprite sheet 32x32 com 4 linhas (direções) e múltiplas colunas (frames)
+                // Linha 0: Baixo, Linha 1: Esquerda, Linha 2: Direita, Linha 3: Cima
+                int spriteSize = 32;
+                int frameX = 0; // Frame parado (use frameAtual para animação)
+                int frameY = 0; // Direção (pode ser atualizado baseado na última tecla pressionada)
+                
+                Rectangle sourceRec = {frameX * spriteSize, frameY * spriteSize, spriteSize, spriteSize};
+                Rectangle destRec = {
+                    jogador.pos_x * TILE_SIZE + (TILE_SIZE - spriteSize) / 2,
+                    jogador.pos_y * TILE_SIZE + (TILE_SIZE - spriteSize) / 2,
+                    spriteSize,
+                    spriteSize
+                };
+                
+                if (playerSheet.id > 0) {
+                    DrawTexturePro(playerSheet, sourceRec, destRec, (Vector2){0, 0}, 0.0f, WHITE);
+                } else {
+                    // Fallback se sprite não carregou
+                    DrawRectangle(jogador.pos_x * TILE_SIZE + 8, 
+                                  jogador.pos_y * TILE_SIZE + 8, 
+                                  TILE_SIZE - 16, TILE_SIZE - 16, COLOR_PLAYER);
+                }
 
             EndMode2D();
             // FIM DO MODO 2D (Coisas estáticas na tela, como UI)
