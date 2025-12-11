@@ -34,6 +34,8 @@ int map_move_player(Map *m, Player *p, int dx, int dy);
 int map_check_encounter(Map *m, const Player *p); // retorna 1 se encontro zumbi
 void map_place_player(Map *m, Player *p);
 const char* map_get_tile_name(Tile tile); // Retorna o nome do tile
+int map_check_all_enemies_defeated(const Map *m); // retorna 1 se todos os inimigos foram derrotados
+void map_repopulate_enemies(Map *m); // repopula o mapa com novos inimigos
 
 
 #endif
