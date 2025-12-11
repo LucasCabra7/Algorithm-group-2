@@ -54,7 +54,7 @@ void map_init(Map *mapa) {
     // Inicializa e cria os inimigos com atributos variados
     mapa->num_inimigos = 0;
     // Número de inimigos proporcional ao tamanho do mapa (cerca de 2.4% dos tiles)
-    int inimigos_a_criar = (MAP_W * MAP_H) / 42; // 500 tiles / 42 ≈ 12 inimigos
+    int inimigos_a_criar = (MAP_W * MAP_H) / ENEMY_DENSITY_FACTOR; // 500 tiles / 42 ≈ 12 inimigos
 
     for (int i = 0; i < inimigos_a_criar; i++) {
         if (mapa->num_inimigos >= MAX_INIMIGOS) {
@@ -68,7 +68,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break; // Evita loop infinito
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break; // Evita loop infinito
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         // Evita spawnar muito perto do jogador
@@ -103,7 +103,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break;
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         mapa->grid[y][x] = TILE_MEDKIT;
@@ -118,7 +118,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break;
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         mapa->grid[y][x] = TILE_WEAPON;
@@ -133,7 +133,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break;
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         mapa->grid[y][x] = TILE_AMMO;
@@ -304,7 +304,7 @@ void map_repopulate_enemies(Map *m) {
     m->num_inimigos = 0;
     
     // Cria novos inimigos (mesma lógica do map_init)
-    int inimigos_a_criar = (MAP_W * MAP_H) / 42; // Cerca de 12 inimigos
+    int inimigos_a_criar = (MAP_W * MAP_H) / ENEMY_DENSITY_FACTOR; // Cerca de 12 inimigos
     
     for (int i = 0; i < inimigos_a_criar; i++) {
         if (m->num_inimigos >= MAX_INIMIGOS) {
@@ -318,12 +318,12 @@ void map_repopulate_enemies(Map *m) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break; // Evita loop infinito
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break; // Evita loop infinito
         } while (m->grid[y][x] != TILE_EMPTY && m->grid[y][x] != TILE_GRASS);
         
         // Evita spawnar muito perto do jogador (área 5x5)
         // Assume que o jogador pode estar em qualquer lugar, então verifica se não está muito próximo
-        if (tentativas > 100) continue;
+        if (tentativas > MAX_PLACEMENT_ATTEMPTS) continue;
         
         Inimigo *novo_inimigo = &m->inimigos[m->num_inimigos];
         

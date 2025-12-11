@@ -7,6 +7,8 @@
 
 #define MAP_W 25
 #define MAP_H 20
+#define ENEMY_DENSITY_FACTOR 42  // Divisor para calcular número de inimigos: (MAP_W * MAP_H) / ENEMY_DENSITY_FACTOR
+#define MAX_PLACEMENT_ATTEMPTS 100  // Tentativas máximas para encontrar posição válida para spawnar inimigo
 
 typedef enum { 
     TILE_EMPTY = 0,     // Chão vazio (.)
