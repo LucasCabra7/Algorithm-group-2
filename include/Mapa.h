@@ -36,6 +36,7 @@ void map_place_player(Map *m, Player *p);
 const char* map_get_tile_name(Tile tile); // Retorna o nome do tile
 int map_check_all_enemies_defeated(const Map *m); // retorna 1 se todos os inimigos foram derrotados
 void map_repopulate_enemies(Map *m); // repopula o mapa com novos inimigos
+void map_sync_enemies_with_grid(Map *m); // sincroniza a grade com o array de inimigos
 
 
 #endif

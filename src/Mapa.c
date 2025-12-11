@@ -344,3 +344,30 @@ void map_repopulate_enemies(Map *m) {
         m->num_inimigos++;
     }
 }
+
+void map_sync_enemies_with_grid(Map *m) {
+    // Limpa todos os tiles de zombie da grade
+    for (int y = 0; y < MAP_H; y++) {
+        for (int x = 0; x < MAP_W; x++) {
+            if (m->grid[y][x] == TILE_ZOMBIE) {
+                m->grid[y][x] = TILE_GRASS;
+            }
+        }
+    }
+    
+    // Recoloca os zombies ativos na grade
+    for (int i = 0; i < m->num_inimigos; i++) {
+        if (m->inimigos[i].ativo) {
+            int x = m->inimigos[i].pos_x;
+            int y = m->inimigos[i].pos_y;
+            
+            // Verifica se a posição é válida
+            if (x >= 0 && x < MAP_W && y >= 0 && y < MAP_H) {
+                // Só coloca o zombie se a posição estiver vazia ou com grama
+                if (m->grid[y][x] == TILE_EMPTY || m->grid[y][x] == TILE_GRASS) {
+                    m->grid[y][x] = TILE_ZOMBIE;
+                }
+            }
+        }
+    }
+}
