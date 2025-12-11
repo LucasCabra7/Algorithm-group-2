@@ -7,6 +7,36 @@
 void criar_inimigo(Inimigo *inimigo, const char* nome, int hp, int atk, int def, int xp);
 
 void map_init(Map *mapa) {
+        // Gera caminhos de calçada conectando áreas centrais e prédios
+        int centro_x = MAP_W / 2;
+        int centro_y = MAP_H / 2;
+        // Caminho horizontal central
+        for (int x = 2; x < MAP_W - 2; x++) {
+            mapa->grid[centro_y][x] = TILE_CALCADA;
+        }
+        // Caminho vertical central
+        for (int y = 2; y < MAP_H - 2; y++) {
+            mapa->grid[y][centro_x] = TILE_CALCADA;
+        }
+        // Caminhos para prédios (se existirem)
+        for (int i = 0; i < MAP_W; i++) {
+            for (int j = 0; j < MAP_H; j++) {
+                if (mapa->grid[j][i] == TILE_BUILDING) {
+                    // Caminho horizontal até o centro
+                    int dir = (i < centro_x) ? 1 : -1;
+                    for (int x = i; x != centro_x; x += dir) {
+                        if (mapa->grid[j][x] == TILE_GRASS || mapa->grid[j][x] == TILE_EMPTY)
+                            mapa->grid[j][x] = TILE_CALCADA;
+                    }
+                    // Caminho vertical até o centro
+                    dir = (j < centro_y) ? 1 : -1;
+                    for (int y = j; y != centro_y; y += dir) {
+                        if (mapa->grid[y][centro_x] == TILE_GRASS || mapa->grid[y][centro_x] == TILE_EMPTY)
+                            mapa->grid[y][centro_x] = TILE_CALCADA;
+                    }
+                }
+            }
+        }
     // Inicializa o mapa com grama como base
     for (int y = 0; y < MAP_H; y++) {
         for (int x = 0; x < MAP_W; x++) {
@@ -25,6 +55,7 @@ void map_init(Map *mapa) {
         }
     }
 
+
     // Cria algumas construções (prédios abandonados)
     int num_buildings = 3;
     for (int i = 0; i < num_buildings; i++) {
@@ -42,6 +73,41 @@ void map_init(Map *mapa) {
                 }
             }
         }
+    }
+
+    // Distribui postes, lixeiras e placas como tiles próprios
+    int num_postes = 5;
+    int num_lixeiras = 4;
+    int num_placas = 3;
+    for (int i = 0; i < num_postes; i++) {
+        int x, y, tentativas = 0;
+        do {
+            x = rand() % MAP_W;
+            y = rand() % MAP_H;
+            tentativas++;
+            if (tentativas > 100) break;
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
+        mapa->grid[y][x] = TILE_POSTE;
+    }
+    for (int i = 0; i < num_lixeiras; i++) {
+        int x, y, tentativas = 0;
+        do {
+            x = rand() % MAP_W;
+            y = rand() % MAP_H;
+            tentativas++;
+            if (tentativas > 100) break;
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
+        mapa->grid[y][x] = TILE_LIXEIRA;
+    }
+    for (int i = 0; i < num_placas; i++) {
+        int x, y, tentativas = 0;
+        do {
+            x = rand() % MAP_W;
+            y = rand() % MAP_H;
+            tentativas++;
+            if (tentativas > 100) break;
+        } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
+        mapa->grid[y][x] = TILE_PLACA;
     }
 
     // Garante uma área inicial limpa para o jogador (canto superior esquerdo)
@@ -239,11 +305,11 @@ int map_move_player(Map *m, Player *p, int dx, int dy){
     int ny = p->pos_y + dy;
     if(nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) return 0;
     
-    // Não pode atravessar paredes, árvores, água ou prédios
-    if(m->grid[ny][nx] == TILE_WALL || 
-       m->grid[ny][nx] == TILE_TREE || 
-       m->grid[ny][nx] == TILE_WATER ||
-       m->grid[ny][nx] == TILE_BUILDING) {
+
+    // Não pode atravessar obstáculos
+    Tile t = m->grid[ny][nx];
+    if (t == TILE_WALL || t == TILE_TREE || t == TILE_WATER || t == TILE_BUILDING ||
+        t == TILE_POSTE || t == TILE_LIXEIRA || t == TILE_PLACA) {
         return 0;
     }
 
@@ -408,31 +474,52 @@ void mapa_atualizar_inimigos_com_bfs(Map *mapa, const Player *jogador) {
     // Resultado: distância de cada tile até jogador
     EstadoBusca resultado_bfs = grafo_bfs(&mapa->grafo_mapa, id_jogador);
     
+    // Cria matriz auxiliar para marcar ocupação dos tiles pelos zumbis
+    int ocupado[MAP_H][MAP_W] = {0};
+    // Marca posição inicial dos zumbis
+    for (int i = 0; i < mapa->num_inimigos; i++) {
+        if (mapa->inimigos[i].ativo) {
+            ocupado[mapa->inimigos[i].pos_y][mapa->inimigos[i].pos_x] = 1;
+        }
+    }
+
     // Para cada zumbi ativo
     for (int i = 0; i < mapa->num_inimigos; i++) {
         if (!mapa->inimigos[i].ativo) continue;
-        
+
         int id_zumbi_atual = mapa->inimigos[i].pos_y * MAP_W + mapa->inimigos[i].pos_x;
         int distancia_minima = 9999;
         int id_proxima_posicao = id_zumbi_atual;
-        
+        int nova_x = mapa->inimigos[i].pos_x;
+        int nova_y = mapa->inimigos[i].pos_y;
+
         // Procura vizinho com menor distância até jogador
         for (int j = 0; j < mapa->grafo_mapa.vertices[id_zumbi_atual].numero_vizinhos; j++) {
             int id_vizinho = mapa->grafo_mapa.vertices[id_zumbi_atual].vizinhos[j];
+            int vizinho_x, vizinho_y;
+            mapa_id_para_xy(id_vizinho, &vizinho_x, &vizinho_y);
             int distancia_vizinho = resultado_bfs.distancia[id_vizinho];
-            
-            // Se este vizinho é mais próximo do jogador, marca como próximo movimento
-            if (distancia_vizinho < distancia_minima) {
+
+            // Só considera vizinho se não estiver ocupado por outro zumbi
+            if (distancia_vizinho < distancia_minima && !ocupado[vizinho_y][vizinho_x]) {
                 distancia_minima = distancia_vizinho;
                 id_proxima_posicao = id_vizinho;
+                nova_x = vizinho_x;
+                nova_y = vizinho_y;
             }
         }
-        
-        // Converte ID em coordenadas e move zumbi
-        int nova_x, nova_y;
-        mapa_id_para_xy(id_proxima_posicao, &nova_x, &nova_y);
-        
+
+        // Limpa tile anterior do zumbi apenas se era realmente um zumbi
+        if (mapa->grid[mapa->inimigos[i].pos_y][mapa->inimigos[i].pos_x] == TILE_ZOMBIE) {
+            mapa->grid[mapa->inimigos[i].pos_y][mapa->inimigos[i].pos_x] = TILE_EMPTY;
+        }
+
+        // Move zumbi para nova posição se não estiver ocupada
         mapa->inimigos[i].pos_x = nova_x;
         mapa->inimigos[i].pos_y = nova_y;
+        ocupado[nova_y][nova_x] = 1; // Marca como ocupado
+
+        // Marca tile novo como zumbi
+        mapa->grid[nova_y][nova_x] = TILE_ZOMBIE;
     }
 }

@@ -13,11 +13,17 @@
 #define SCREEN_HEIGHT 600
 
 // --- CORES ESTILO MINIDAYZ (Paleta Desbotada) ---
-#define COLOR_GRASS  CLITERAL(Color){ 50, 60, 50, 255 }  // Verde escuro desbotado
-#define COLOR_WALL   CLITERAL(Color){ 30, 30, 30, 255 }  // Cinza quase preto
-#define COLOR_PLAYER CLITERAL(Color){ 0, 121, 241, 255 } // Azul 
-#define COLOR_ZOMBIE CLITERAL(Color){ 230, 41, 55, 255 } // Vermelho sangue
-#define COLOR_ITEM   CLITERAL(Color){ 253, 249, 0, 255 } // Amarelo Ouro
+#define COR_GRAMA      CLITERAL(Color){ 50, 60, 50, 255 }    // Verde escuro desbotado
+#define COR_MURO       CLITERAL(Color){ 160, 160, 160, 255 } // Cinza claro para muro
+#define COR_BORDA_MURO CLITERAL(Color){ 80, 80, 80, 255 }    // Borda escura do muro
+#define COR_JOGADOR    CLITERAL(Color){ 0, 121, 241, 255 }   // Azul
+#define COR_ZUMBI      CLITERAL(Color){ 230, 41, 55, 255 }   // Vermelho sangue
+#define COR_ITEM       CLITERAL(Color){ 253, 249, 0, 255 }   // Amarelo Ouro
+#define COR_CHAO       CLITERAL(Color){ 120, 120, 100, 255 } // Chão vazio
+#define COR_GRAMA2     CLITERAL(Color){ 80, 120, 60, 255 }   // Grama clara
+#define COR_ARVORE     CLITERAL(Color){ 34, 139, 34, 255 }   // Verde árvore
+#define COR_AGUA       CLITERAL(Color){ 30, 144, 255, 255 }  // Azul água
+#define COR_PREDIO     CLITERAL(Color){ 100, 100, 120, 255 } // Cinza prédio
 
 // Estados do Jogo
 typedef enum { 
@@ -33,6 +39,20 @@ typedef enum {
     ESTADO_SOBRE,
     ESTADO_TUTORIAL
 } EstadoJogo;
+
+// Direções para animação do personagem
+typedef enum {
+    DIR_BAIXO = 0,
+    DIR_ESQUERDA = 1,
+    DIR_DIREITA = 2,
+    DIR_CIMA = 3
+} DirecaoAnim;
+
+// Controle de animação do personagem
+int anim_frame = 0;
+float anim_timer = 0.0f;
+const int ANIM_FRAMES = 6; // Quantidade de frames por direção (ajustado para o spritesheet)
+DirecaoAnim anim_direcao = DIR_BAIXO;
 
 // Estados do menu de combate
 typedef enum {
@@ -52,6 +72,9 @@ int main(void) {
 
     // 2. Carregar configurações e estatísticas
     GameConfig config;
+
+    // Carregar sprite do personagem (original)
+    // ...existing code...
     GameStatistics stats;
     time_t inicio_sessao = 0;
     
@@ -109,6 +132,31 @@ int main(void) {
     Texture2D soldadSheet = LoadTexture("src/assets/Soldad_Sprite_Sheet.png");
     Texture2D medicSheet = LoadTexture("src/assets/Medic_Sprite_Sheet.png");
     Texture2D engenheirSheet = LoadTexture("src/assets/Engenheir_Sprite_Sheet.png");
+        // Sprites de itens do mapa
+        Texture2D spriteMedkit = LoadTexture("src/assets/recursos_coletaveis/health-armor 32px.png");
+        Texture2D spriteAmmo = LoadTexture("src/assets/recursos_coletaveis/ammo-pistol 32px.png");
+        Texture2D spriteArma = LoadTexture("src/assets/recursos_coletaveis/AK47.png");
+            // Sprite de árvore
+            Texture2D spriteArvore = LoadTexture("src/assets/Tree1.png");
+                // Sprite de arbusto
+                Texture2D spriteArbusto = LoadTexture("src/assets/elementos/Bush1.png");
+                Texture2D spritePlanta = LoadTexture("src/assets/elementos/Plant1.png");
+                Texture2D spriteLixeira = LoadTexture("src/assets/elementos/Closed Trashbin.png");
+                Texture2D spritePoste = LoadTexture("src/assets/elementos/Light Pole.png");
+                Texture2D spritePlaca = LoadTexture("src/assets/elementos/Sign1.png");
+                Texture2D spriteHidrante = LoadTexture("src/assets/elementos/Fire Hidrant.png");
+                if (spritePlanta.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Plant1.png");
+                if (spriteLixeira.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Closed Trashbin.png");
+                if (spritePoste.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Light Pole.png");
+                if (spritePlaca.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Sign1.png");
+                if (spriteHidrante.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Fire Hidrant.png");
+                if (spriteArbusto.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Bush1.png");
+            if (spriteArvore.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar Tree1.png");
+            // Tenta carregar árvore da pasta elementos se não encontrar na raiz
+            if (spriteArvore.id == 0) spriteArvore = LoadTexture("src/assets/elementos/Tree1.png");
+        if (spriteMedkit.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar health-armor 32px.png");
+        if (spriteAmmo.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar ammo-pistol 32px.png");
+        if (spriteArma.id == 0) TraceLog(LOG_WARNING, "Falha ao carregar AK47.png");
     
     // Itens colecionáveis
     Texture2D healthArmor = LoadTexture("src/assets/recursos_coletaveis/health-armor 32px.png");
@@ -216,6 +264,13 @@ int main(void) {
             if (dx != 0 || dy != 0) {
                 // Tenta mover usando tua lógica de Mapa.c
                 if (map_move_player(&mapa, &jogador, dx, dy)) {
+                    // Atualiza direção da animação
+                    if (dx == 1) anim_direcao = DIR_DIREITA;
+                    else if (dx == -1) anim_direcao = DIR_ESQUERDA;
+                    else if (dy == 1) anim_direcao = DIR_BAIXO;
+                    else if (dy == -1) anim_direcao = DIR_CIMA;
+                    // Avança frame de animação
+                    anim_frame = (anim_frame + 1) % ANIM_FRAMES;
                     
                     // Checar itens coletados e adicionar ao inventário
                     Tile current_tile = mapa.grid[jogador.pos_y][jogador.pos_x];
@@ -750,32 +805,125 @@ int main(void) {
             BeginMode2D(camera);
 
                 // 1. Desenhar o Chão (Background do Mundo)
-                // Desenhamos um retângulo gigante cinza/verde para simular o chão
-                DrawRectangle(0, 0, MAP_W * TILE_SIZE, MAP_H * TILE_SIZE, COLOR_GRASS);
-                
-                // Opcional: Desenhar linhas de grade para ajudar a ver
-                for(int i = 0; i <= MAP_W; i++) DrawLine(i*TILE_SIZE, 0, i*TILE_SIZE, MAP_H*TILE_SIZE, DARKGREEN);
-                for(int i = 0; i <= MAP_H; i++) DrawLine(0, i*TILE_SIZE, MAP_W*TILE_SIZE, i*TILE_SIZE, DARKGREEN);
+                // Novo: Fundo com variação de cor suave e blending para profundidade
+                for (int y = 0; y < MAP_H; y++) {
+                    for (int x = 0; x < MAP_W; x++) {
+                        int posX = x * TILE_SIZE;
+                        int posY = y * TILE_SIZE;
+                        // Verifica se está dentro dos limites da tela
+                        if (posX + TILE_SIZE <= 0 || posY + TILE_SIZE <= 0 || posX >= SCREEN_WIDTH || posY >= SCREEN_HEIGHT) continue;
+                        // Variação de cor baseada na posição para efeito de "grama viva"
+                        int baseR = 50 + (x * 2 + y * 3) % 20;
+                        int baseG = 80 + (y * 4 + x * 2) % 30;
+                        int baseB = 50 + (x * 3 + y * 2) % 15;
+                        Color corTile = CLITERAL(Color){ baseR, baseG, baseB, 255 };
+                        DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, corTile);
+                    }
+                }
+                // Efeito de blending nas bordas para suavizar transição
+                for (int i = 0; i < 4; i++) {
+                    DrawRectangle(0, i, MAP_W * TILE_SIZE, 4, Fade(DARKGREEN, 0.2f));
+                    DrawRectangle(0, MAP_H * TILE_SIZE - i - 4, MAP_W * TILE_SIZE, 4, Fade(DARKGREEN, 0.2f));
+                }
 
                 // 2. Desenhar Objetos do Mapa
                 for (int y = 0; y < MAP_H; y++) {
                     for (int x = 0; x < MAP_W; x++) {
                         int posX = x * TILE_SIZE;
                         int posY = y * TILE_SIZE;
-                        
+                        // Verifica se está dentro dos limites da tela
+                        if (posX + TILE_SIZE <= 0 || posY + TILE_SIZE <= 0 || posX >= SCREEN_WIDTH || posY >= SCREEN_HEIGHT) continue;
+                        // Nunca desenhar sprite do jogador em TILE_EMPTY
                         // Desenhar tiles com sprites quando disponíveis
                         switch (mapa.grid[y][x]) {
+                            case TILE_EMPTY:
+                                // Chão vazio
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_CHAO);
+                                break;
+                            case TILE_GRASS:
+                                // Grama clara
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_GRAMA2);
+                                break;
+                            case TILE_TREE:
+                                // Árvore com sprite centralizado
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_GRAMA2);
+                                if (spriteArvore.id > 0) {
+                                    float escala = (float)TILE_SIZE / (float)spriteArvore.width;
+                                    float arvoreW = spriteArvore.width * escala;
+                                    float arvoreH = spriteArvore.height * escala;
+                                    float arvoreX = posX + (TILE_SIZE - arvoreW) / 2;
+                                    float arvoreY = posY + (TILE_SIZE - arvoreH) / 2;
+                                    DrawTextureEx(spriteArvore, (Vector2){arvoreX, arvoreY}, 0.0f, escala, WHITE);
+                                }
+                                break;
+                            case TILE_WATER:
+                                // Água
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_AGUA);
+                                break;
+                            case TILE_BUILDING:
+                                // Prédio
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_PREDIO);
+                                DrawRectangleLines(posX, posY, TILE_SIZE, TILE_SIZE, BLACK);
+                                break;
+                            case TILE_POSTE:
+                                // Poste
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_CHAO);
+                                if (spritePoste.id > 0) {
+                                    float escala = (float)TILE_SIZE / (float)spritePoste.width;
+                                    float posteW = spritePoste.width * escala;
+                                    float posteH = spritePoste.height * escala;
+                                    float posteX = posX + (TILE_SIZE - posteW) / 2;
+                                    float posteY = posY + (TILE_SIZE - posteH) / 2;
+                                    DrawTextureEx(spritePoste, (Vector2){posteX, posteY}, 0.0f, escala, WHITE);
+                                }
+                                break;
+                            case TILE_LIXEIRA:
+                                // Lixeira
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_CHAO);
+                                if (spriteLixeira.id > 0) {
+                                    float escalaW = (float)TILE_SIZE / (float)spriteLixeira.width;
+                                    float escalaH = (float)TILE_SIZE / (float)spriteLixeira.height;
+                                    float escala = escalaW < escalaH ? escalaW : escalaH;
+                                    if (escala > 1.0f) escala = 1.0f; // Nunca aumentar, só diminuir
+                                    float lixW = spriteLixeira.width * escala;
+                                    float lixH = spriteLixeira.height * escala;
+                                    float lixX = posX + (TILE_SIZE - lixW) / 2;
+                                    float lixY = posY + (TILE_SIZE - lixH) / 2;
+                                    DrawTextureEx(spriteLixeira, (Vector2){lixX, lixY}, 0.0f, escala, WHITE);
+                                }
+                                break;
+                            case TILE_CALCADA:
+                                // Calçada/caminho de praça
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, CLITERAL(Color){180, 180, 180, 255});
+                                DrawRectangleLines(posX, posY, TILE_SIZE, TILE_SIZE, CLITERAL(Color){140, 140, 140, 255});
+                                break;
+                            case TILE_PLACA:
+                                // Placa
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_CHAO);
+                                if (spritePlaca.id > 0) {
+                                    float escala = (float)TILE_SIZE / (float)spritePlaca.width;
+                                    float placaW = spritePlaca.width * escala;
+                                    float placaH = spritePlaca.height * escala;
+                                    float placaX = posX + (TILE_SIZE - placaW) / 2;
+                                    float placaY = posY + (TILE_SIZE - placaH) / 2;
+                                    DrawTextureEx(spritePlaca, (Vector2){placaX, placaY}, 0.0f, escala, WHITE);
+                                }
+                                break;
                             case TILE_WALL:
-                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COLOR_WALL);
-                                // Efeito de sombra na parede
+                                // Desenha o muro com cor clara
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_MURO);
+                                // Adiciona borda escura ao redor do muro
+                                DrawRectangleLines(posX, posY, TILE_SIZE, TILE_SIZE, COR_BORDA_MURO);
+                                // Efeito de sombra na base do muro
                                 DrawRectangle(posX, posY + TILE_SIZE - 5, TILE_SIZE, 5, BLACK); 
                                 break;
                             case TILE_ZOMBIE:
+                                // Fundo igual ao chão
+                                DrawRectangle(posX, posY, TILE_SIZE, TILE_SIZE, COR_CHAO);
                                 // Usar sprite de batalha escalado para o overworld
                                 if (zumbiBatalha.id > 0) {
-                                    // Escalar sprite de batalha para caber no tile (48x48)
                                     float scale = (float)TILE_SIZE / (float)zumbiBatalha.width;
-                                    if (scale > 1.0f) scale = 1.0f; // Não aumentar, só diminuir
+                                    if (scale > 1.0f) scale = 1.0f;
                                     Rectangle sourceRec = {0, 0, (float)zumbiBatalha.width, (float)zumbiBatalha.height};
                                     Rectangle destRec = {
                                         posX + (TILE_SIZE - zumbiBatalha.width * scale) / 2,
@@ -785,49 +933,40 @@ int main(void) {
                                     };
                                     DrawTexturePro(zumbiBatalha, sourceRec, destRec, (Vector2){0, 0}, 0.0f, WHITE);
                                 } else {
-                                    // Fallback se sprite não carregou
-                                    DrawRectangle(posX + 10, posY + 10, TILE_SIZE - 20, TILE_SIZE - 20, COLOR_ZOMBIE);
+                                    DrawRectangle(posX + 10, posY + 10, TILE_SIZE - 20, TILE_SIZE - 20, COR_ZUMBI);
                                     DrawText("Z", posX + 15, posY + 10, 20, WHITE);
                                 }
                                 break;
                             case TILE_MEDKIT:
                                 // Desenhar sprite de medkit
-                                DrawTextureEx(healthArmor, (Vector2){posX + 8, posY + 8}, 0.0f, 1.0f, WHITE);
+                                DrawTextureEx(spriteMedkit, (Vector2){posX + 8, posY + 8}, 0.0f, 1.0f, WHITE);
                                 break;
                             case TILE_AMMO:
                                 // Desenhar sprite de munição
-                                DrawTextureEx(ammoPistol, (Vector2){posX + 8, posY + 8}, 0.0f, 1.0f, WHITE);
+                                DrawTextureEx(spriteAmmo, (Vector2){posX + 8, posY + 8}, 0.0f, 1.0f, WHITE);
+                                break;
+                            case TILE_WEAPON:
+                                // Desenhar sprite de arma
+                                DrawTextureEx(spriteArma, (Vector2){posX + 8, posY + 8}, 0.0f, 0.7f, WHITE);
                                 break;
                             case TILE_ITEM:
-                            case TILE_WEAPON:
-                                DrawRectangle(posX + 15, posY + 15, TILE_SIZE - 30, TILE_SIZE - 30, COLOR_ITEM);
+                                // Item genérico (planta ou hidrante)
+                                if ((x + y) % 2 == 0 && spritePlanta.id > 0)
+                                    DrawTextureEx(spritePlanta, (Vector2){posX + 8, posY + 8}, 0.0f, 0.8f, WHITE);
+                                else if (spriteHidrante.id > 0)
+                                    DrawTextureEx(spriteHidrante, (Vector2){posX + 8, posY + 8}, 0.0f, 0.8f, WHITE);
+                                else
+                                    DrawRectangle(posX + 15, posY + 15, TILE_SIZE - 30, TILE_SIZE - 30, COR_ITEM);
                                 break;
                         }
                     }
                 }
 
-                // 3. Desenhar Jogador usando sprite de batalha (Soldado_Batalha)
-                // Usar a mesma sprite da batalha para consistência visual
-                
-                if (soldadoBatalha.id > 0) {
-                    // Calcular escala para caber no tile
-                    float scaleX = (float)TILE_SIZE / (float)soldadoBatalha.width;
-                    float scaleY = (float)TILE_SIZE / (float)soldadoBatalha.height;
-                    float scale = (scaleX < scaleY) ? scaleX : scaleY; // Usar menor escala
-                    
-                    // Calcular posição centralizada
-                    float spriteWidth = soldadoBatalha.width * scale;
-                    float spriteHeight = soldadoBatalha.height * scale;
-                    float posX = jogador.pos_x * TILE_SIZE + (TILE_SIZE - spriteWidth) / 2;
-                    float posY = jogador.pos_y * TILE_SIZE + (TILE_SIZE - spriteHeight) / 2;
-                    
-                    DrawTextureEx(soldadoBatalha, (Vector2){posX, posY}, 0.0f, scale, WHITE);
-                } else {
-                    // Fallback se sprite não carregou
-                    DrawRectangle(jogador.pos_x * TILE_SIZE + 8, 
-                                  jogador.pos_y * TILE_SIZE + 8, 
-                                  TILE_SIZE - 16, TILE_SIZE - 16, COLOR_PLAYER);
-                }
+                // 3. Desenhar Jogador usando sprite original, centralizado e proporcional ao tile
+                float escala = (float)TILE_SIZE / soldadoBatalha.width;
+                float posX = jogador.pos_x * TILE_SIZE + (TILE_SIZE - soldadoBatalha.width * escala) / 2;
+                float posY = jogador.pos_y * TILE_SIZE + (TILE_SIZE - soldadoBatalha.height * escala) / 2;
+                DrawTextureEx(soldadoBatalha, (Vector2){posX, posY}, 0.0f, escala, WHITE);
 
             EndMode2D();
             // FIM DO MODO 2D (Coisas estáticas na tela, como UI)
@@ -905,7 +1044,7 @@ int main(void) {
                     DrawTexture(zumbiBatalha, spriteInimigoX, spriteInimigoY, WHITE);
                 } else {
                     // Fallback: desenhar retângulo se texture não carregou
-                    DrawRectangle(spriteInimigoX, spriteInimigoY, 80, 100, COLOR_ZOMBIE);
+                    DrawRectangle(spriteInimigoX, spriteInimigoY, 80, 100, COR_ZUMBI);
                     DrawText("Z", spriteInimigoX + 30, spriteInimigoY + 30, 40, WHITE);
                 }
                 
@@ -949,7 +1088,7 @@ int main(void) {
                     DrawTexture(soldadoBatalha, spriteJogadorX, spriteJogadorY, WHITE);
                 } else {
                     // Fallback: desenhar retângulo se texture não carregou
-                    DrawRectangle(spriteJogadorX, spriteJogadorY, 80, 100, COLOR_PLAYER);
+                    DrawRectangle(spriteJogadorX, spriteJogadorY, 80, 100, COR_JOGADOR);
                     DrawText("P", spriteJogadorX + 30, spriteJogadorY + 30, 40, WHITE);
                 }
                 

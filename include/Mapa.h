@@ -18,9 +18,13 @@ typedef enum {
     TILE_TREE = 5,      // Árvore (T)
     TILE_WATER = 6,     // Água (~)
     TILE_BUILDING = 7,  // Construção (B)
-    TILE_MEDKIT = 8,    // Medkit específico (+)
-    TILE_WEAPON = 9,    // Arma específica (!)
-    TILE_AMMO = 10      // Munição específica (^)
+    TILE_POSTE = 8,     // Poste
+    TILE_LIXEIRA = 9,   // Lixeira
+    TILE_PLACA = 10,    // Placa
+    TILE_CALCADA = 11,  // Calçada/caminho de praça
+    TILE_MEDKIT = 12,   // Medkit específico (+)
+    TILE_WEAPON = 13,   // Arma específica (!)
+    TILE_AMMO = 14      // Munição específica (^)
 } Tile;
 
 typedef struct {
