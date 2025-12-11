@@ -54,7 +54,7 @@ void map_init(Map *mapa) {
     // Inicializa e cria os inimigos com atributos variados
     mapa->num_inimigos = 0;
     // Número de inimigos proporcional ao tamanho do mapa (cerca de 2.4% dos tiles)
-    int inimigos_a_criar = (MAP_W * MAP_H) / 42; // 500 tiles / 42 ≈ 12 inimigos
+    int inimigos_a_criar = (MAP_W * MAP_H) / ENEMY_DENSITY_FACTOR; // 500 tiles / 42 ≈ 12 inimigos
 
     for (int i = 0; i < inimigos_a_criar; i++) {
         if (mapa->num_inimigos >= MAX_INIMIGOS) {
@@ -68,7 +68,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break; // Evita loop infinito
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break; // Evita loop infinito
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         // Evita spawnar muito perto do jogador
@@ -103,7 +103,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break;
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         mapa->grid[y][x] = TILE_MEDKIT;
@@ -118,7 +118,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break;
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         mapa->grid[y][x] = TILE_WEAPON;
@@ -133,7 +133,7 @@ void map_init(Map *mapa) {
             x = rand() % MAP_W;
             y = rand() % MAP_H;
             tentativas++;
-            if (tentativas > 100) break;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break;
         } while (mapa->grid[y][x] != TILE_EMPTY && mapa->grid[y][x] != TILE_GRASS);
 
         mapa->grid[y][x] = TILE_AMMO;
@@ -276,5 +276,98 @@ const char* map_get_tile_name(Tile tile) {
         case TILE_BUILDING: return "um predio";
         case TILE_ZOMBIE: return "um zumbi";
         default: return "obstaculo";
+    }
+}
+
+int map_check_all_enemies_defeated(const Map *m) {
+    // Verifica se todos os inimigos foram derrotados
+    for (int i = 0; i < m->num_inimigos; i++) {
+        if (m->inimigos[i].ativo) {
+            return 0; // Ainda há inimigos vivos
+        }
+    }
+    return 1; // Todos os inimigos foram derrotados
+}
+
+void map_repopulate_enemies(Map *m) {
+    // Remove todos os inimigos antigos do mapa
+    for (int i = 0; i < m->num_inimigos; i++) {
+        if (m->inimigos[i].pos_x >= 0 && m->inimigos[i].pos_x < MAP_W &&
+            m->inimigos[i].pos_y >= 0 && m->inimigos[i].pos_y < MAP_H) {
+            if (m->grid[m->inimigos[i].pos_y][m->inimigos[i].pos_x] == TILE_ZOMBIE) {
+                m->grid[m->inimigos[i].pos_y][m->inimigos[i].pos_x] = TILE_GRASS;
+            }
+        }
+    }
+    
+    // Reseta o contador de inimigos
+    m->num_inimigos = 0;
+    
+    // Cria novos inimigos (mesma lógica do map_init)
+    int inimigos_a_criar = (MAP_W * MAP_H) / ENEMY_DENSITY_FACTOR; // Cerca de 12 inimigos
+    
+    for (int i = 0; i < inimigos_a_criar; i++) {
+        if (m->num_inimigos >= MAX_INIMIGOS) {
+            break;
+        }
+        
+        // Escolhe uma posição aleatória que esteja vazia ou em grama
+        int x, y;
+        int tentativas = 0;
+        do {
+            x = rand() % MAP_W;
+            y = rand() % MAP_H;
+            tentativas++;
+            if (tentativas > MAX_PLACEMENT_ATTEMPTS) break; // Evita loop infinito
+        } while (m->grid[y][x] != TILE_EMPTY && m->grid[y][x] != TILE_GRASS);
+        
+        // Evita spawnar muito perto do jogador (área 5x5)
+        // Assume que o jogador pode estar em qualquer lugar, então verifica se não está muito próximo
+        if (tentativas > MAX_PLACEMENT_ATTEMPTS) continue;
+        
+        Inimigo *novo_inimigo = &m->inimigos[m->num_inimigos];
+        
+        // Decide aleatoriamente qual tipo de inimigo criar
+        int tipo_inimigo = rand() % 3;
+        if (tipo_inimigo == 0) {
+            criar_inimigo(novo_inimigo, "Zumbi Lento", 40, 8, 2, 10);
+        } else if (tipo_inimigo == 1) {
+            criar_inimigo(novo_inimigo, "Corredor Agil", 25, 12, 0, 15);
+        } else {
+            criar_inimigo(novo_inimigo, "Zumbi Robusto", 60, 6, 5, 20);
+        }
+        
+        novo_inimigo->pos_x = x;
+        novo_inimigo->pos_y = y;
+        
+        m->grid[y][x] = TILE_ZOMBIE;
+        m->num_inimigos++;
+    }
+}
+
+void map_sync_enemies_with_grid(Map *m) {
+    // Limpa todos os tiles de zombie da grade
+    for (int y = 0; y < MAP_H; y++) {
+        for (int x = 0; x < MAP_W; x++) {
+            if (m->grid[y][x] == TILE_ZOMBIE) {
+                m->grid[y][x] = TILE_GRASS;
+            }
+        }
+    }
+    
+    // Recoloca os zombies ativos na grade
+    for (int i = 0; i < m->num_inimigos; i++) {
+        if (m->inimigos[i].ativo) {
+            int x = m->inimigos[i].pos_x;
+            int y = m->inimigos[i].pos_y;
+            
+            // Verifica se a posição é válida
+            if (x >= 0 && x < MAP_W && y >= 0 && y < MAP_H) {
+                // Só coloca o zombie se a posição estiver vazia ou com grama
+                if (m->grid[y][x] == TILE_EMPTY || m->grid[y][x] == TILE_GRASS) {
+                    m->grid[y][x] = TILE_ZOMBIE;
+                }
+            }
+        }
     }
 }

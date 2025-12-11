@@ -28,6 +28,7 @@ typedef enum {
     ESTADO_INVENTARIO,       // NEW: Inventory screen
     ESTADO_PAUSA,            // NEW: Pause menu
     ESTADO_GAME_OVER,        // NEW: Game over screen
+    ESTADO_VITORIA,          // NEW: Victory screen
     ESTADO_OPCOES,
     ESTADO_ESTATISTICAS,
     ESTADO_SOBRE,
@@ -531,7 +532,13 @@ int main(void) {
             else if (estadoCombate == COMBATE_VITORIA) {
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
                     mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_GRASS;
-                    estado = ESTADO_EXPLORANDO;
+                    
+                    // Verificar se todos os inimigos foram derrotados
+                    if (map_check_all_enemies_defeated(&mapa)) {
+                        estado = ESTADO_VITORIA;
+                    } else {
+                        estado = ESTADO_EXPLORANDO;
+                    }
                 }
             }
             else if (estadoCombate == COMBATE_DERROTA) {
@@ -562,6 +569,22 @@ int main(void) {
         }
         else if (estado == ESTADO_GAME_OVER) {
             if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                estado = ESTADO_MENU_PRINCIPAL;
+            }
+        }
+        else if (estado == ESTADO_VITORIA) {
+            if (IsKeyPressed(KEY_ENTER)) {
+                // Continuar jogando - repopular mapa
+                map_repopulate_enemies(&mapa);
+                estado = ESTADO_EXPLORANDO;
+            } else if (IsKeyPressed(KEY_ESCAPE)) {
+                // Sair para o menu principal
+                if (inicio_sessao > 0) {
+                    time_t fim_sessao = time(NULL);
+                    int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                    stats_atualizar_tempo(&stats, tempo_sessao);
+                    stats_save(&stats, "stats.dat");
+                }
                 estado = ESTADO_MENU_PRINCIPAL;
             }
         }
@@ -745,6 +768,24 @@ int main(void) {
             DrawText(TextFormat("Voce sobreviveu ate o nivel %d", jogador.nivel), 
                      SCREEN_WIDTH/2 - 200, 300, 20, WHITE);
             DrawText("Pressione ENTER para voltar ao menu", 220, 400, 18, LIGHTGRAY);
+        }
+        else if (estado == ESTADO_VITORIA) {
+            // Victory screen
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, (Color){20, 40, 20, 255});
+            DrawText("VITORIA!", SCREEN_WIDTH/2 - 120, 150, 50, GOLD);
+            DrawText("Voce eliminou todos os zumbis do mapa!", 
+                     SCREEN_WIDTH/2 - 220, 230, 20, WHITE);
+            DrawText(TextFormat("Nivel alcancado: %d", jogador.nivel), 
+                     SCREEN_WIDTH/2 - 100, 280, 20, WHITE);
+            DrawText(TextFormat("XP total: %d", jogador.xp), 
+                     SCREEN_WIDTH/2 - 80, 310, 20, WHITE);
+            
+            DrawText("Pressione ENTER para continuar jogando", 
+                     SCREEN_WIDTH/2 - 200, 380, 18, GREEN);
+            DrawText("(Novos zumbis aparecerão no mapa)", 
+                     SCREEN_WIDTH/2 - 160, 410, 14, LIGHTGRAY);
+            DrawText("Pressione ESC para voltar ao menu", 
+                     SCREEN_WIDTH/2 - 150, 450, 18, YELLOW);
         }
         else if (estado == ESTADO_EXPLORANDO || estado == ESTADO_BATALHA) {
 

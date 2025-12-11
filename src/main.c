@@ -478,6 +478,35 @@ int main()
                                     inventory_add(&jogador.inventario, it);
                                     printf("O inimigo deixou municao!\n");
                                 }
+                                
+                                // Verificar se todos os inimigos foram derrotados
+                                if (map_check_all_enemies_defeated(&mapa)) {
+                                    printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+                                    printf("║          PARABENS! VOCE VENCEU!                           ║\n");
+                                    printf("╚═══════════════════════════════════════════════════════════╝\n\n");
+                                    printf("Voce eliminou todos os zumbis do mapa!\n\n");
+                                    printf("Deseja continuar jogando? (s/n): ");
+                                    char continuar = 0;
+                                    scanf(" %c", &continuar);
+                                    
+                                    if (continuar == 's' || continuar == 'S') {
+                                        printf("\nNovos zumbis apareceram no mapa!\n");
+                                        map_repopulate_enemies(&mapa);
+                                        pause_console();
+                                    } else {
+                                        printf("\nVoltando ao menu principal...\n");
+                                        if (inicio_sessao > 0) {
+                                            time_t fim_sessao = time(NULL);
+                                            int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                                            stats_atualizar_tempo(&stats, tempo_sessao);
+                                            stats_save(&stats, "stats.dat");
+                                        }
+                                        in_game = 0;
+                                        pause_console();
+                                        break;
+                                    }
+                                }
+                                
                                 pause_console();
                             }
                             if (res == 2) // Fugiu
@@ -648,6 +677,35 @@ int main()
                                         inventory_add(&jogador.inventario, it);
                                         printf("O inimigo deixou municao!\n");
                                     }
+                                    
+                                    // Verificar se todos os inimigos foram derrotados
+                                    if (map_check_all_enemies_defeated(&mapa)) {
+                                        printf("\n╔═══════════════════════════════════════════════════════════╗\n");
+                                        printf("║          PARABENS! VOCE VENCEU!                           ║\n");
+                                        printf("╚═══════════════════════════════════════════════════════════╝\n\n");
+                                        printf("Voce eliminou todos os zumbis do mapa!\n\n");
+                                        printf("Deseja continuar jogando? (s/n): ");
+                                        char continuar = 0;
+                                        scanf(" %c", &continuar);
+                                        
+                                        if (continuar == 's' || continuar == 'S') {
+                                            printf("\nNovos zumbis apareceram no mapa!\n");
+                                            map_repopulate_enemies(&mapa);
+                                            pause_console();
+                                        } else {
+                                            printf("\nVoltando ao menu principal...\n");
+                                            if (inicio_sessao > 0) {
+                                                time_t fim_sessao = time(NULL);
+                                                int tempo_sessao = (int)difftime(fim_sessao, inicio_sessao);
+                                                stats_atualizar_tempo(&stats, tempo_sessao);
+                                                stats_save(&stats, "stats.dat");
+                                            }
+                                            in_game = 0;
+                                            pause_console();
+                                            break;
+                                        }
+                                    }
+                                    
                                     pause_console();
                                 }
                                 if (res == 2)
