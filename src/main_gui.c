@@ -236,18 +236,89 @@ int main(void) {
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     } else if (current_tile == TILE_WEAPON) {
-                        Item pistol = {ITEM_PISTOLA, "Pistola", 15, 1};
-                        inventory_add(&jogador.inventario, pistol);
-                        // Auto-equip weapon
-                        jogador.equipped_weapon_idx = inventory_find_type(&jogador.inventario, ITEM_PISTOLA);
+                        // Random weapon spawn - could be any weapon type
+                        int weapon_type = rand() % 9; // 9 different weapons
+                        Item weapon;
+                        weapon.quantidade = 1;
+                        
+                        switch(weapon_type) {
+                            case 0: // Pistola
+                                weapon.tipo = ITEM_PISTOLA;
+                                strcpy(weapon.nome, "Pistola");
+                                weapon.poder = 15;
+                                weapon.is_melee = 0;
+                                break;
+                            case 1: // Revolver
+                                weapon.tipo = ITEM_REVOLVER;
+                                strcpy(weapon.nome, "Revolver");
+                                weapon.poder = 20;
+                                weapon.is_melee = 0;
+                                break;
+                            case 2: // Rifle
+                                weapon.tipo = ITEM_RIFLE;
+                                strcpy(weapon.nome, "Rifle de Ferrolho");
+                                weapon.poder = 30;
+                                weapon.is_melee = 0;
+                                break;
+                            case 3: // Fuzil
+                                weapon.tipo = ITEM_FUZIL;
+                                strcpy(weapon.nome, "Fuzil de Assalto");
+                                weapon.poder = 25;
+                                weapon.is_melee = 0;
+                                break;
+                            case 4: // Escopeta
+                                weapon.tipo = ITEM_ESCOPETA;
+                                strcpy(weapon.nome, "Escopeta");
+                                weapon.poder = 35;
+                                weapon.is_melee = 0;
+                                break;
+                            case 5: // Faca
+                                weapon.tipo = ITEM_FACA;
+                                strcpy(weapon.nome, "Faca");
+                                weapon.poder = 10;
+                                weapon.is_melee = 1;
+                                break;
+                            case 6: // Bastão
+                                weapon.tipo = ITEM_BASTAO;
+                                strcpy(weapon.nome, "Bastao");
+                                weapon.poder = 12;
+                                weapon.is_melee = 1;
+                                break;
+                            case 7: // Cano
+                                weapon.tipo = ITEM_CANO;
+                                strcpy(weapon.nome, "Cano de Ferro");
+                                weapon.poder = 15;
+                                weapon.is_melee = 1;
+                                break;
+                            case 8: // Espada
+                                weapon.tipo = ITEM_ESPADA;
+                                strcpy(weapon.nome, "Espada");
+                                weapon.poder = 20;
+                                weapon.is_melee = 1;
+                                break;
+                        }
+                        
+                        inventory_add(&jogador.inventario, weapon);
+                        // Auto-equip weapon if none equipped
+                        if (jogador.equipped_weapon_idx < 0) {
+                            jogador.equipped_weapon_idx = jogador.inventario.size - 1;
+                        }
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     } else if (current_tile == TILE_ITEM) {
                         // Generic item - could be armor
-                        Item armor = {ITEM_ARMOR, "Colete", 50, 1};
+                        Item armor;
+                        armor.tipo = ITEM_ARMOR;
+                        strcpy(armor.nome, "Colete");
+                        armor.poder = 50;
+                        armor.quantidade = 1;
+                        armor.is_melee = 0;
                         inventory_add(&jogador.inventario, armor);
-                        // Auto-equip armor (add 50 durability)
-                        jogador.armor_durability += 50;
+                        // Auto-equip armor if none equipped
+                        if (jogador.equipped_armor_idx < 0) {
+                            jogador.equipped_armor_idx = jogador.inventario.size - 1;
+                            jogador.armor_durability = armor.poder;
+                        }
                         stats_registrar_item_coletado(&stats);
                         mapa.grid[jogador.pos_y][jogador.pos_x] = TILE_EMPTY;
                     }
@@ -301,34 +372,54 @@ int main(void) {
                         
                         // Add weapon damage bonus if equipped
                         int weapon_bonus = 0;
+                        int is_ranged_attack = 0;
+                        int is_melee_attack = 0;
+                        
                         if (jogador.equipped_weapon_idx >= 0 && 
                             jogador.equipped_weapon_idx < (int)jogador.inventario.size) {
-                            // Check if we have ammo
-                            int ammo_idx = inventory_find_type(&jogador.inventario, ITEM_MUNI);
-                            if (ammo_idx >= 0 && jogador.inventario.itens[ammo_idx].quantidade > 0) {
-                                // Use ammo and add weapon damage
-                                weapon_bonus = jogador.inventario.itens[jogador.equipped_weapon_idx].poder;
-                                jogador.inventario.itens[ammo_idx].quantidade--;
-                                if (jogador.inventario.itens[ammo_idx].quantidade <= 0) {
-                                    inventory_remove_index(&jogador.inventario, ammo_idx);
-                                    // Update weapon index if ammo was before it
-                                    if (ammo_idx < jogador.equipped_weapon_idx) {
-                                        jogador.equipped_weapon_idx--;
+                            Item *equipped_weapon = &jogador.inventario.itens[jogador.equipped_weapon_idx];
+                            
+                            if (equipped_weapon->is_melee) {
+                                // Melee weapon - no ammo needed
+                                weapon_bonus = equipped_weapon->poder;
+                                is_melee_attack = 1;
+                            } else {
+                                // Ranged weapon - check for ammo
+                                int ammo_idx = inventory_find_type(&jogador.inventario, ITEM_MUNI);
+                                if (ammo_idx >= 0 && jogador.inventario.itens[ammo_idx].quantidade > 0) {
+                                    // Use ammo and add weapon damage
+                                    weapon_bonus = equipped_weapon->poder;
+                                    is_ranged_attack = 1;
+                                    jogador.inventario.itens[ammo_idx].quantidade--;
+                                    if (jogador.inventario.itens[ammo_idx].quantidade <= 0) {
+                                        inventory_remove_index(&jogador.inventario, ammo_idx);
+                                        // Update indices if ammo was before them
+                                        if (ammo_idx < jogador.equipped_weapon_idx) {
+                                            jogador.equipped_weapon_idx--;
+                                        }
+                                        if (ammo_idx < jogador.equipped_armor_idx) {
+                                            jogador.equipped_armor_idx--;
+                                        }
                                     }
                                 }
                             }
                         }
                         
-                        int dano = (rand() % (ataque_base + weapon_bonus)) + 2 - inimigoAtual->defesa;
+                        // Fixed damage calculation: base random + fixed weapon bonus
+                        int dano = (rand() % ataque_base) + weapon_bonus + 2 - inimigoAtual->defesa;
                         if (dano < 1) dano = 1;
                         hp_inimigo_atual -= dano;
                         
-                        if (weapon_bonus > 0) {
+                        // Attack message based on weapon type
+                        if (is_ranged_attack) {
                             snprintf(mensagemCombate, sizeof(mensagemCombate), 
                                     "%s disparou e causou %d de dano!", jogador.nome, dano);
+                        } else if (is_melee_attack) {
+                            snprintf(mensagemCombate, sizeof(mensagemCombate), 
+                                    "%s golpeou e causou %d de dano!", jogador.nome, dano);
                         } else {
                             snprintf(mensagemCombate, sizeof(mensagemCombate), 
-                                    "%s atacou e causou %d de dano!", jogador.nome, dano);
+                                    "%s atacou com socos e causou %d de dano!", jogador.nome, dano);
                         }
                         estadoCombate = COMBATE_ATACANDO;
                         tempoCombate = 0.0f;
@@ -397,9 +488,15 @@ int main(void) {
                             if (jogador.armor_durability <= 0) {
                                 jogador.armor_durability = 0;
                                 // Remove armor from inventory
-                                int armor_idx = inventory_find_type(&jogador.inventario, ITEM_ARMOR);
-                                if (armor_idx >= 0) {
-                                    inventory_remove_index(&jogador.inventario, armor_idx);
+                                if (jogador.equipped_armor_idx >= 0 && 
+                                    jogador.equipped_armor_idx < (int)jogador.inventario.size) {
+                                    int removed_idx = jogador.equipped_armor_idx;
+                                    inventory_remove_index(&jogador.inventario, removed_idx);
+                                    // Update indices
+                                    if (jogador.equipped_weapon_idx > removed_idx) {
+                                        jogador.equipped_weapon_idx--;
+                                    }
+                                    jogador.equipped_armor_idx = -1;
                                 }
                                 snprintf(mensagemCombate, sizeof(mensagemCombate), 
                                         "%s atacou! Colete absorveu %d dano mas foi destruido!", 
@@ -595,14 +692,18 @@ int main(void) {
             DrawText(TextFormat("Defesa: %d", jogador.defesa), 50, y_offset + 90, 20, WHITE);
             
             // Equipment status
-            if (jogador.equipped_weapon_idx >= 0) {
-                DrawText("Arma: Pistola (Equipada)", 50, y_offset + 120, 18, YELLOW);
+            if (jogador.equipped_weapon_idx >= 0 && 
+                jogador.equipped_weapon_idx < (int)jogador.inventario.size) {
+                Item *weapon = &jogador.inventario.itens[jogador.equipped_weapon_idx];
+                DrawText(TextFormat("Arma: %s (%d dano) - Equipada", weapon->nome, weapon->poder), 
+                         50, y_offset + 120, 18, YELLOW);
             } else {
-                DrawText("Arma: Nenhuma", 50, y_offset + 120, 18, GRAY);
+                DrawText("Arma: Socos (5 dano) - Desarmado", 50, y_offset + 120, 18, GRAY);
             }
             
-            if (jogador.armor_durability > 0) {
-                DrawText(TextFormat("Colete: %d durabilidade", jogador.armor_durability), 
+            if (jogador.equipped_armor_idx >= 0 && 
+                jogador.equipped_armor_idx < (int)jogador.inventario.size) {
+                DrawText(TextFormat("Colete: %d durabilidade - Equipado", jogador.armor_durability), 
                          50, y_offset + 145, 18, SKYBLUE);
             } else {
                 DrawText("Colete: Nenhum", 50, y_offset + 145, 18, GRAY);
@@ -615,12 +716,22 @@ int main(void) {
                 for (size_t i = 0; i < jogador.inventario.size && i < 10; i++) {
                     Item *it = &jogador.inventario.itens[i];
                     const char* tipo_str = "";
-                    if (it->tipo == ITEM_MEDKIT) tipo_str = "[MEDKIT]";
-                    else if (it->tipo == ITEM_PISTOLA) tipo_str = "[ARMA]";
-                    else if (it->tipo == ITEM_MUNI) tipo_str = "[MUNI]";
-                    else if (it->tipo == ITEM_ARMOR) tipo_str = "[COLETE]";
+                    const char* equip_str = "";
                     
-                    DrawText(TextFormat("%s %s x%d (Poder: %d)", tipo_str, it->nome, it->quantidade, it->poder), 
+                    // Determine item type
+                    if (it->tipo == ITEM_MEDKIT) tipo_str = "[MEDKIT]";
+                    else if (it->tipo == ITEM_MUNI) tipo_str = "[MUNI]";
+                    else if (it->tipo == ITEM_ARMOR) {
+                        tipo_str = "[COLETE]";
+                        if (i == jogador.equipped_armor_idx) equip_str = " (EQUIPADO)";
+                    }
+                    else if (it->tipo >= ITEM_REVOLVER && it->tipo <= ITEM_ESPADA) {
+                        if (it->is_melee) tipo_str = "[ARMA CC]"; // Corpo a corpo
+                        else tipo_str = "[ARMA]";
+                        if (i == jogador.equipped_weapon_idx) equip_str = " (EQUIPADA)";
+                    }
+                    
+                    DrawText(TextFormat("%s %s x%d (Poder: %d)%s", tipo_str, it->nome, it->quantidade, it->poder, equip_str), 
                              70, y_offset + 225 + i * 25, 18, WHITE);
                 }
             }
@@ -730,10 +841,19 @@ int main(void) {
             
             // Equipment status in HUD
             int hud_y = 90;
-            if (jogador.equipped_weapon_idx >= 0) {
-                int ammo_idx = inventory_find_type(&jogador.inventario, ITEM_MUNI);
-                int ammo_count = (ammo_idx >= 0) ? jogador.inventario.itens[ammo_idx].quantidade : 0;
-                DrawText(TextFormat("Arma: Pistola (%d balas)", ammo_count), 10, hud_y, 14, YELLOW);
+            if (jogador.equipped_weapon_idx >= 0 && 
+                jogador.equipped_weapon_idx < (int)jogador.inventario.size) {
+                Item *weapon = &jogador.inventario.itens[jogador.equipped_weapon_idx];
+                if (weapon->is_melee) {
+                    DrawText(TextFormat("Arma: %s (%d dano)", weapon->nome, weapon->poder), 10, hud_y, 14, YELLOW);
+                } else {
+                    int ammo_idx = inventory_find_type(&jogador.inventario, ITEM_MUNI);
+                    int ammo_count = (ammo_idx >= 0) ? jogador.inventario.itens[ammo_idx].quantidade : 0;
+                    DrawText(TextFormat("Arma: %s (%d balas)", weapon->nome, ammo_count), 10, hud_y, 14, YELLOW);
+                }
+                hud_y += 20;
+            } else {
+                DrawText("Arma: Socos (5 dano)", 10, hud_y, 14, GRAY);
                 hud_y += 20;
             }
             if (jogador.armor_durability > 0) {

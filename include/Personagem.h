@@ -24,8 +24,9 @@ typedef struct
     int pos_x;
     int pos_y;
     Inventory inventario;
-    int equipped_weapon_idx;  // Index of equipped weapon in inventory (-1 = unarmed)
+    int equipped_weapon_idx;  // Index of equipped weapon in inventory (-1 = unarmed/fists)
     int armor_durability;     // Remaining armor HP (0 = no armor)
+    int equipped_armor_idx;   // Index of equipped armor in inventory (-1 = no armor)
 } Player;
 
 Player player_creat(const char *nome, Classe classe);
