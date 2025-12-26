@@ -118,6 +118,15 @@ int batalha_turno(Player *jogador, Inimigo *inimigo) {
             if (idx >= 0) {
                 Item *it = &jogador->inventario.itens[idx];
                 int cura = it->poder;
+
+                 // Verifica se o jogador é Médico
+                 if (jogador->Classe == MEDICO) { // 1. Verifica a Classe
+                    int bonus = (int)(cura * 0.25); // 2. Calcula o Bônus (25% do valor base)
+                    if (bonus < 1) bonus = 1;      // 3. Garante um bônus mínimo
+                    cura += bonus;                 // 4. Aplica o Bônus
+                    printf("💉 Cura aprimorada de Medico ativada! (+%d HP)\n", bonus);
+                }
+
                 jogador->hp += cura;
 
                 if (jogador->hp > jogador->hp_max) {
